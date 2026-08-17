@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/public/defendialogo.png" alt="DEFENDIA" width="200" />
+<img src="https://defendia.bluenetwork.dev/defendialogo.png" alt="DEFENDIA" width="200" />
 
 <h3>Network Defense — Siber Güvenlik Eğitim &amp; CTF Operasyon Platformu</h3>
 
@@ -79,27 +79,28 @@ Platformu kurulum yapmadan incelemek için hazır bir demo ortamı mevcuttur:
 ## Ekran Görüntüleri
 
 ### Kontrol Paneli
-<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/03-dashboard.png" width="100%" />
+![Kontrol Paneli](docs/screenshots/03-dashboard.png)
 
 ### CTF — Bayrak Görevleri
-<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/07-ctf.png" width="100%" />
+![CTF — Bayrak Görevleri](docs/screenshots/07-ctf.png)
 
 ### Laboratuvar
-<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/06-lab.png" width="100%" />
+![Laboratuvar](docs/screenshots/06-lab.png)
 
 ### Operasyon Senaryoları
-<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/04-scenarios.png" width="100%" />
+![Operasyon Senaryoları](docs/screenshots/04-scenarios.png)
 
-<table>
-  <tr>
-    <td width="50%"><b>Operatör Sıralaması</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/09-users.png" /></td>
-    <td width="50%"><b>Takım Yönetimi</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/13-teams.png" /></td>
-  </tr>
-  <tr>
-    <td width="50%"><b>Admin Panel</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/08-admin.png" /></td>
-    <td width="50%"><b>Profil</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/11-profile.png" /></td>
-  </tr>
-</table>
+### Operatör Sıralaması
+![Operatör Sıralaması](docs/screenshots/09-users.png)
+
+### Takım Yönetimi
+![Takım Yönetimi](docs/screenshots/13-teams.png)
+
+### Admin Panel
+![Admin Panel](docs/screenshots/08-admin.png)
+
+### Profil
+![Profil](docs/screenshots/11-profile.png)
 
 ## Sistem Mimarisi
 
