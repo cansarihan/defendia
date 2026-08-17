@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://defendia.bluenetwork.dev/defendialogo.png" alt="DEFENDIA" width="200" />
+<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/public/defendialogo.png" alt="DEFENDIA" width="200" />
 
 <h3>Network Defense — Siber Güvenlik Eğitim &amp; CTF Operasyon Platformu</h3>
 
@@ -25,9 +25,7 @@
 
 </div>
 
-<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0B1220,50:0EA5E9,100:0B1220&height=110&section=header" width="100%" />
-</div>
+---
 
 ## Genel Bakış
 
@@ -81,25 +79,25 @@ Platformu kurulum yapmadan incelemek için hazır bir demo ortamı mevcuttur:
 ## Ekran Görüntüleri
 
 ### Kontrol Paneli
-<img src="docs/screenshots/03-dashboard.png" width="100%" />
+<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/03-dashboard.png" width="100%" />
 
 ### CTF — Bayrak Görevleri
-<img src="docs/screenshots/07-ctf.png" width="100%" />
+<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/07-ctf.png" width="100%" />
 
 ### Laboratuvar
-<img src="docs/screenshots/06-lab.png" width="100%" />
+<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/06-lab.png" width="100%" />
 
 ### Operasyon Senaryoları
-<img src="docs/screenshots/04-scenarios.png" width="100%" />
+<img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/04-scenarios.png" width="100%" />
 
 <table>
   <tr>
-    <td width="50%"><b>Operatör Sıralaması</b><br/><img src="docs/screenshots/09-users.png" /></td>
-    <td width="50%"><b>Takım Yönetimi</b><br/><img src="docs/screenshots/13-teams.png" /></td>
+    <td width="50%"><b>Operatör Sıralaması</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/09-users.png" /></td>
+    <td width="50%"><b>Takım Yönetimi</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/13-teams.png" /></td>
   </tr>
   <tr>
-    <td width="50%"><b>Admin Panel</b><br/><img src="docs/screenshots/08-admin.png" /></td>
-    <td width="50%"><b>Profil</b><br/><img src="docs/screenshots/11-profile.png" /></td>
+    <td width="50%"><b>Admin Panel</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/08-admin.png" /></td>
+    <td width="50%"><b>Profil</b><br/><img src="https://raw.githubusercontent.com/cansarihan/defendia/main/docs/screenshots/11-profile.png" /></td>
   </tr>
 </table>
 
@@ -355,6 +353,5 @@ Tüm hassas ayarlar ortam değişkenleri üzerinden yönetilir ve depoya dâhil 
 **Can Sarıhan** tarafından geliştirilmiştir.
 
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0B1220,50:0EA5E9,100:0B1220&height=90&section=footer" width="100%" />
   <sub>DEFENDIA — Network Defense</sub>
 </div>
