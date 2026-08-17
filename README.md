@@ -5,7 +5,7 @@
 <h3>Network Defense — Siber Güvenlik Eğitim &amp; CTF Operasyon Platformu</h3>
 
 <a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=38BDF8&center=true&vCenter=true&width=620&lines=Izole+sizma+testi+laboratuvarlari;Kategori+bazli+CTF+gorevleri;Cok+adimli+operasyon+senaryolari;Proxmox+ile+canli+sanal+makineler" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=38BDF8&center=true&vCenter=true&width=620&lines=Canli+CTF+platformu;Kategori+bazli+CTF+gorevleri;Cok+adimli+operasyon+senaryolari;Proxmox+ile+canli+sanal+makineler" alt="Typing SVG" />
 </a>
 
 <br/><br/>
