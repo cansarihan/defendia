@@ -79,28 +79,28 @@ Platformu kurulum yapmadan incelemek için hazır bir demo ortamı mevcuttur:
 ## Ekran Görüntüleri
 
 ### Kontrol Paneli
-![Kontrol Paneli](docs/screenshots/03-dashboard.png)
+![Kontrol Paneli](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/03-dashboard.png)
 
 ### CTF — Bayrak Görevleri
-![CTF — Bayrak Görevleri](docs/screenshots/07-ctf.png)
+![CTF — Bayrak Görevleri](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/07-ctf.png)
 
 ### Laboratuvar
-![Laboratuvar](docs/screenshots/06-lab.png)
+![Laboratuvar](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/06-lab.png)
 
 ### Operasyon Senaryoları
-![Operasyon Senaryoları](docs/screenshots/04-scenarios.png)
+![Operasyon Senaryoları](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/04-scenarios.png)
 
 ### Operatör Sıralaması
-![Operatör Sıralaması](docs/screenshots/09-users.png)
+![Operatör Sıralaması](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/09-users.png)
 
 ### Takım Yönetimi
-![Takım Yönetimi](docs/screenshots/13-teams.png)
+![Takım Yönetimi](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/13-teams.png)
 
 ### Admin Panel
-![Admin Panel](docs/screenshots/08-admin.png)
+![Admin Panel](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/08-admin.png)
 
 ### Profil
-![Profil](docs/screenshots/11-profile.png)
+![Profil](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/11-profile.png)
 
 ## Sistem Mimarisi
 
