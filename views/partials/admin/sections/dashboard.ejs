@@ -1,0 +1,71 @@
+<div id="viewDashboard" class="menu-section active">
+
+  <div class="admin-stat-grid">
+    <div class="admin-stat-card green">
+      <div class="admin-stat-label">Sistem Sağlığı</div>
+      <div class="admin-stat-value" id="pve-status-text" style="font-size:16px;color:#10b981;">SENKRONIZE EDİLİYOR...</div>
+      <div class="admin-stat-sub">Node: <%= typeof PVE_NODE !== 'undefined' ? PVE_NODE : 'pve' %></div>
+    </div>
+    <div class="admin-stat-card yellow">
+      <div class="admin-stat-label">Sunucu Sıcaklığı</div>
+      <div class="admin-stat-value"><span id="pve-temp">--</span><span style="font-size:14px;color:#fbbf24;"> °C</span></div>
+      <div class="admin-progress-bg">
+        <div id="pve-temp-bar" class="admin-progress-fill" style="width:0%;background:#fbbf24;"></div>
+      </div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-label">Kayıtlı Operatör</div>
+      <div class="admin-stat-value"><%= users.length %></div>
+    </div>
+    <div class="admin-stat-card green">
+      <div class="admin-stat-label">Aktif Lab Kullanıcısı</div>
+      <div class="admin-stat-value" id="active-lab-count">--</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-label">CPU Yükü</div>
+      <div class="admin-stat-value"><span id="pve-cpu">--</span><span style="font-size:14px;color:#38bdf8;">%</span></div>
+      <div class="admin-progress-bg">
+        <div id="pve-cpu-bar" class="admin-progress-fill" style="width:0%;background:#38bdf8;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-title"><span class="material-icons">memory</span> Bellek (RAM) — 128 GB</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;">
+      <div>
+        <div class="admin-stat-label">Kullanılan</div>
+        <div style="font-size:22px;font-weight:800;color:white;font-family:'JetBrains Mono',monospace;"><span id="pve-ram-used">--</span> <span style="font-size:13px;color:#38bdf8;">GB</span></div>
+      </div>
+      <div id="pve-ram-free" style="font-size:12px;color:#10b981;font-family:'JetBrains Mono',monospace;">-- GB Boş Alan</div>
+    </div>
+    <div class="admin-progress-bg" style="height:8px;">
+      <div id="pve-ram-bar" class="admin-progress-fill" style="width:0%;background:linear-gradient(90deg,#10b981,#38bdf8);"></div>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-title"><span class="material-icons">storage</span> Depolama Üniteleri</div>
+    <div id="pve-disk-list" class="admin-stat-grid"></div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-title"><span class="material-icons">computer</span> Proxmox Instance List (Canlı)</div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>VMID</th>
+            <th>Sunucu Adı</th>
+            <th>Durum</th>
+            <th>Kaynak (CPU/RAM)</th>
+          </tr>
+        </thead>
+        <tbody id="pve-vm-list-tbody">
+          <tr><td colspan="4" style="text-align:center;padding:24px;color:#38bdf8;font-family:'JetBrains Mono',monospace;">Proxmox verileri çekiliyor...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

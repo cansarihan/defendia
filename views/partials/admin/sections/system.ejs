@@ -1,0 +1,92 @@
+<div id="viewSystem" class="menu-section">
+
+  <!-- Kayan Duyuru -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span class="material-icons">campaign</span> Kayan Sistem Duyurusu</div>
+    <textarea id="announcementInput" class="admin-input admin-textarea" style="height:80px;margin-bottom:12px;"><%= typeof systemAnnouncement !== 'undefined' ? systemAnnouncement : '' %></textarea>
+    <button onclick="updateAnnouncement()" class="admin-btn-primary">
+      <span class="material-icons" style="font-size:14px;">save</span> Değişiklikleri Uygula
+    </button>
+  </div>
+
+  <!-- Sistem Bildirimleri -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span class="material-icons">notifications</span> Sistem Bildirimleri</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <input type="text" id="notifInput" class="admin-input" placeholder="Örn: Yeni OSINT görevi eklendi..." style="flex:1;">
+      <button onclick="addNotification()" class="admin-btn admin-btn-edit" style="white-space:nowrap;padding:8px 16px;">
+        <span class="material-icons" style="font-size:12px;">add</span> Ekle
+      </button>
+    </div>
+    <div class="admin-table-wrap">
+      <% if (typeof systemNotifications !== 'undefined' && systemNotifications.length > 0) { %>
+        <% systemNotifications.forEach(notif => { %>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span style="font-size:12px;color:#cbd5e1;">[SİSTEM] <%= notif.message %></span>
+          <button onclick="deleteNotification('<%= notif.id %>')" class="admin-btn admin-btn-del" style="padding:5px 10px;">
+            <span class="material-icons" style="font-size:12px;">delete</span>
+          </button>
+        </div>
+        <% }) %>
+      <% } else { %>
+        <div style="padding:20px;text-align:center;color:#475569;font-size:12px;font-family:'JetBrains Mono',monospace;">Kayıtlı bildirim yok</div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Hedefli Bildirim Gönder -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span class="material-icons">send</span> Bildirim Gönder</div>
+
+    <div class="admin-form-row" style="grid-template-columns:1fr 1fr;">
+      <div>
+        <label class="admin-label">Hedef Kullanıcı</label>
+        <select id="targetUserSelect" class="admin-select">
+          <option value="">-- Kullanıcı Seçin --</option>
+          <% if (typeof users !== 'undefined') { %>
+            <% users.forEach(u => { %>
+            <option value="<%= u.id %>" data-online="false"><%= u.username %></option>
+            <% }) %>
+          <% } %>
+        </select>
+        <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:'JetBrains Mono',monospace;">
+          <span id="onlineStatus"><span class="online-dot offline"></span> Çevrimdışı</span>
+        </div>
+      </div>
+      <div>
+        <label class="admin-label">Önem Derecesi</label>
+        <select id="severitySelect" class="admin-select">
+          <option value="info">ℹ️ Bilgi (Mavi)</option>
+          <option value="success">✅ Başarı (Yeşil)</option>
+          <option value="warning">⚠️ Uyarı (Sarı)</option>
+          <option value="danger">🚨 Kritik (Kırmızı)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label class="admin-label">Mesaj</label>
+      <textarea id="notificationMessage" class="admin-input admin-textarea" placeholder="Bildirim mesajını yazın..."></textarea>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <label class="toggle-switch">
+        <input type="checkbox" id="soundToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+      <span style="font-size:12px;color:#94a3b8;">Bildirim sesi çal</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <button onclick="sendTargetedNotification()" class="admin-btn-primary">
+        <span class="material-icons" style="font-size:14px;">person_pin</span> Hedefli Gönder
+      </button>
+      <button onclick="sendBroadcastNotification()" class="admin-btn-primary admin-btn-broadcast">
+        <span class="material-icons" style="font-size:14px;">campaign</span> Tüm Kullanıcılara
+      </button>
+    </div>
+
+    <div id="notificationResult"></div>
+  </div>
+
+</div>

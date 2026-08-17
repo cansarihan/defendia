@@ -1,0 +1,101 @@
+{
+    "c1": {
+        "id": "c1",
+        "title": "Mavi İzler",
+        "category": "Steganografi",
+        "points": 50,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/challenge-1774058647945-64216332.png"
+    },
+    "c2": {
+        "id": "c2",
+        "title": "Renklerin Sessizliği",
+        "category": "Steganografi",
+        "points": 75,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/bluectf2.png"
+    },
+    "c3": {
+        "id": "c3",
+        "title": "64'lük Bilmece",
+        "category": "Kriptoloji",
+        "points": 20,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/mesaj.txt"
+    },
+    "c4": {
+        "id": "c4",
+        "title": "Roma'dan Kalan İzler",
+        "category": "Kriptoloji",
+        "points": 100,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/mesaj2.txt"
+    },
+    "c5": {
+        "id": "c5",
+        "title": "Mavi Anahtarın Peşinde",
+        "category": "Kriptoloji",
+        "points": 250,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/arka_kapi.txt"
+    },
+    "c6": {
+        "id": "c6",
+        "title": "Ağdaki Fısıltı",
+        "category": "Adli Bilişim",
+        "points": 100,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/kanit.pcap"
+    },
+    "c7": {
+        "id": "c7",
+        "title": "Arama Motoru Muhafızı",
+        "category": "Web Güvenliği",
+        "points": 75,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": ""
+    },
+    "c8": {
+        "id": "c8",
+        "title": "👻 XorSpectre: Hayaleti Yakala",
+        "category": "Tersine Mühendislik",
+        "points": 400,
+        "hint": "Ipucu buraya",
+        "flag": "REDACTED_FLAG",
+        "download": "/files/XorSpectre.zip"
+    },
+    "c9": {
+        "id": "c9",
+        "title": "Kapuz Dosyası",
+        "category": "OSINT",
+        "points": 20,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya",
+        "download": ""
+    },
+    "c10": {
+        "id": "c10",
+        "title": "Dijital Dipnot (DNS Discovery)",
+        "category": "OSINT",
+        "points": 50,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya",
+        "download": ""
+    },
+    "c11": {
+        "id": "c11",
+        "title": "Retro Keşif (The Microsoft Legacy)",
+        "category": "OSINT",
+        "points": 20,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya",
+        "download": ""
+    }
+}

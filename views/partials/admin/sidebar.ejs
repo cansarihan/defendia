@@ -1,0 +1,44 @@
+<div class="sidebar">
+    <div style="text-align:center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
+        <img src="/defendialogo.png" style="height: 110px; filter: drop-shadow(0 0 5px var(--blue)); transition: 0.3s;" id="admin-logo">
+        <div style="margin-top: 10px; font-size: 11px; color: var(--red); font-weight: bold; letter-spacing: 2px; text-transform: uppercase;">
+            ROOT COMMANDER
+        </div>
+    </div>
+    
+    <button id="btn-viewDashboard" class="side-item active" onclick="switchMenu('viewDashboard')">
+        📊 Sistem İstatistikleri
+    </button>
+    
+    <button id="btn-viewUsers" class="side-item" onclick="switchMenu('viewUsers')">
+        👥 Operatör Yönetimi
+    </button>
+    
+    <button id="btn-viewLabs" class="side-item" onclick="switchMenu('viewLabs')">
+        🧪 Laboratuvar Makineleri
+    </button>
+    
+    <button id="btn-viewCtf" class="side-item" onclick="switchMenu('viewCtf')">
+        🚩 CTF Görevleri
+    </button>
+    
+    <button id="btn-viewScenarios" class="side-item" onclick="switchMenu('viewScenarios')">
+        🗺️ Operasyon Senaryoları
+    </button>
+    
+    <button id="btn-viewSystem" class="side-item" onclick="switchMenu('viewSystem')">
+        📢 Duyuru & Bildirimler
+    </button>
+    
+    <a href="/logout" class="side-item" style="margin-top: auto; color: var(--red); text-align: center; border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
+        [ SİSTEMDEN ÇIK ]
+    </a>
+</div>
+
+<style>
+    /* Sidebar'a özel küçük bir hover animasyonu */
+    #admin-logo:hover {
+        transform: scale(1.05) rotate(-2deg);
+        filter: drop-shadow(0 0 15px var(--blue));
+    }
+</style>

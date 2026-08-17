@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Kayıt Ol</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <style>
+    body { background: #080c18; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+    canvas { position: fixed; inset: 0; z-index: 0; opacity: 0.06; pointer-events: none; }
+    .auth-wrap { position: relative; z-index: 1; width: 380px; }
+    .auth-logo { text-align: center; margin-bottom: 32px; }
+    .auth-logo img { height: 90px; filter: drop-shadow(0 0 16px rgba(16,185,129,0.6)); }
+    .auth-logo-text { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #475569; letter-spacing: 4px; text-transform: uppercase; margin-top: 8px; }
+    .auth-card { background: #0d1224; border: 1px solid rgba(56,189,248,0.15); border-radius: 14px; padding: 32px; position: relative; }
+    .auth-title { font-size: 10px; font-weight: 700; color: #475569; letter-spacing: 3px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 24px; }
+    .auth-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 11px 14px; font-size: 13px; color: #e2e8f0; font-family: 'Inter', sans-serif; outline: none; transition: all 0.2s; box-sizing: border-box; margin-bottom: 12px; }
+    .auth-input:focus { border-color: rgba(56,189,248,0.4); background: rgba(56,189,248,0.04); }
+    .auth-input::placeholder { color: #334155; }
+    .auth-btn { width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 8px; color: #080c18; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s; margin-top: 4px; }
+    .auth-btn:hover { box-shadow: 0 0 20px rgba(16,185,129,0.4); transform: translateY(-1px); }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .auth-msg { padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 16px; display: none; }
+    .auth-msg.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+    .auth-msg.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
+    .auth-footer { text-align: center; margin-top: 20px; font-size: 12px; color: #475569; }
+    .auth-footer a { color: #38bdf8; text-decoration: none; font-weight: 600; }
+    .corner { position: absolute; width: 14px; height: 14px; }
+    .corner.tl { top: 10px; left: 10px; border-top: 2px solid rgba(16,185,129,0.4); border-left: 2px solid rgba(16,185,129,0.4); border-radius: 2px 0 0 0; }
+    .corner.tr { top: 10px; right: 10px; border-top: 2px solid rgba(16,185,129,0.4); border-right: 2px solid rgba(16,185,129,0.4); border-radius: 0 2px 0 0; }
+    .corner.bl { bottom: 10px; left: 10px; border-bottom: 2px solid rgba(16,185,129,0.4); border-left: 2px solid rgba(16,185,129,0.4); border-radius: 0 0 0 2px; }
+    .corner.br { bottom: 10px; right: 10px; border-bottom: 2px solid rgba(16,185,129,0.4); border-right: 2px solid rgba(16,185,129,0.4); border-radius: 0 0 2px 0; }
+  </style>
+</head>
+<body class="page-enter">
+<canvas id="matrix"></canvas>
+
+<div class="auth-wrap">
+  <div class="auth-logo">
+    <img src="/defendialogo.png" alt="Defendia">
+    <div class="auth-logo-text">DEFENDIA NETWORK DEFENSE</div>
+  </div>
+
+  <div class="auth-card">
+    <div class="corner tl"></div><div class="corner tr"></div>
+    <div class="corner bl"></div><div class="corner br"></div>
+
+    <div class="auth-title">Yeni Operatör // Kayıt Ol</div>
+
+    <div id="msg-box" class="auth-msg"></div>
+
+    <form id="regForm">
+      <input type="text" name="username" class="auth-input" placeholder="Kullanıcı Adı Seç" required autocomplete="off">
+      <input type="password" name="password" class="auth-input" placeholder="Güçlü Bir Şifre Gir" required>
+      <button type="submit" class="auth-btn" id="regBtn">HESAP OLUŞTUR</button>
+    </form>
+
+    <div class="auth-footer">
+      Zaten hesabın var mı? <a href="/login">Giriş Yap</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('regForm');
+const msg  = document.getElementById('msg-box');
+const btn  = document.getElementById('regBtn');
+
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  btn.disabled = true; btn.textContent = 'CREATING...';
+  msg.style.display = 'none';
+  try {
+    const res = await fetch('/register', { method:'POST', body: new URLSearchParams(new FormData(form)), headers:{'Content-Type':'application/x-www-form-urlencoded'} });
+    const r = await res.json();
+    if(r.success) { msg.textContent = '✓ Kayıt başarılı! Yönlendiriliyorsunuz...'; msg.className='auth-msg success'; msg.style.display='block'; setTimeout(() => window.location.href='/login', 2000); }
+    else { msg.textContent = '⚠ '+(r.error||'Hata oluştu!'); msg.className='auth-msg error'; msg.style.display='block'; btn.disabled=false; btn.textContent='HESAP OLUŞTUR'; }
+  } catch(e) { msg.textContent='⚠ Sunucu hatası!'; msg.className='auth-msg error'; msg.style.display='block'; btn.disabled=false; }
+};
+
+const canvas = document.getElementById('matrix'), ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const drops = Array(Math.ceil(canvas.width/16)).fill(1);
+setInterval(() => {
+  ctx.fillStyle='rgba(8,12,24,0.08)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#10b981'; ctx.font='14px monospace';
+  drops.forEach((y,i) => { ctx.fillText(Math.floor(Math.random()*2),i*16,y*16); if(y*16>canvas.height&&Math.random()>0.975)drops[i]=0; drops[i]++; });
+}, 50);
+</script>
+</body>
+</html>

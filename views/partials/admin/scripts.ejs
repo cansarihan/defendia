@@ -1,0 +1,1211 @@
+<script>
+  // ═══════════════════════════════════════════
+  //  ADMIN PANEL — SCRIPTS
+  // ═══════════════════════════════════════════
+
+  const rawLabs      = <%- JSON.stringify(labs || {}) %>;
+  const rawCtf       = <%- JSON.stringify(ctfChallenges || {}) %>;
+  const rawScenarios = <%- typeof scenarios !== 'undefined' ? JSON.stringify(scenarios) : '{}' %>;
+
+  // ── Yardımcı: ID ile veri bul ──
+  function findDataById(source, id) {
+    if (Array.isArray(source)) return source.find(item => item.id == id);
+    return source[id];
+  }
+
+  // ── Toast ──
+  function showToast(message, type) {
+    type = type || 'success';
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerText = message;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  // ── Menü Geçişi ──
+  function switchMenu(sectionId) {
+    document.querySelectorAll('.menu-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+    const target = document.getElementById(sectionId);
+    if (target) target.classList.add('active');
+    const btn = document.getElementById('btn-' + sectionId);
+    if (btn) btn.classList.add('active');
+    localStorage.setItem('activeAdminTab', sectionId);
+    const titles = {
+      viewDashboard: 'SİSTEM İSTATİSTİKLERİ',
+      viewUsers:     'OPERATÖR YÖNETİMİ',
+      viewLabs:      'LABORATUVAR MAKİNELERİ',
+      viewCtf:       'CTF GÖREVLERİ',
+      viewScenarios: 'OPERASYON SENARYOLARI',
+      viewSystem:    'DUYURU & BİLDİRİMLER',
+      viewTeams:     'TAKIM YÖNETİMİ',
+      viewFirstBloods: 'İLK KAN KAYITLARI',
+      viewBadges:      'ROZET YÖNETİMİ',
+      viewBans:        'YASAKLAMA YÖNETİMİ',
+      viewTickets:     'DESTEK TALEPLERİ',
+      viewAdmins:      'ADMİNLİK YÖNETİMİ'
+    };
+    const el = document.getElementById('adminPageTitle');
+    if (el) el.textContent = titles[sectionId] || 'YÖNETİM PANELİ';
+    if (sectionId === 'viewTeams') loadAdminTeams();
+    if (sectionId === 'viewFirstBloods') loadAdminFirstBloods();
+    if (sectionId === 'viewBadges') loadAdminBadges();
+    if (sectionId === 'viewBans')   loadAdminBans();
+    if (sectionId === 'viewTickets') loadAdminTickets();
+    if (sectionId === 'viewAdmins')  loadAdminList();
+  }
+
+  function closeModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.remove('active');
+  }
+
+  // ── Proxmox Canlı Güncelleme ──
+  async function refreshPveStats() {
+    try {
+      const res  = await fetch('/api/admin/pve-live-stats');
+      const data = await res.json();
+      if (!data.success) return;
+
+      document.getElementById('pve-status-text').innerText = 'SİSTEM STABİL';
+      document.getElementById('pve-temp').innerText        = data.temp || 45;
+      document.getElementById('pve-temp-bar').style.width  = (data.temp || 45) + '%';
+
+      document.getElementById('pve-cpu').innerText         = data.cpu;
+      document.getElementById('pve-cpu-bar').style.width   = data.cpu + '%';
+
+      const ramUsed    = parseFloat(data.ram.used);
+      const ramTotal   = 128;
+      const ramPercent = (ramUsed / ramTotal) * 100;
+      document.getElementById('pve-ram-used').innerText  = ramUsed;
+      document.getElementById('pve-ram-free').innerText  = (ramTotal - ramUsed).toFixed(1) + ' GB Boş Alan';
+      document.getElementById('pve-ram-bar').style.width = ramPercent + '%';
+
+      const diskContainer = document.getElementById('pve-disk-list');
+      if (diskContainer) {
+        diskContainer.innerHTML = data.disks.map(disk => `
+          <div class="admin-stat-card" style="margin-bottom:10px;">
+            <div class="admin-stat-label">Disk: ${disk.name}</div>
+            <div class="admin-stat-value" style="font-size:18px;">${disk.used} / ${disk.total} GB</div>
+            <div class="admin-progress-bg">
+              <div class="admin-progress-fill" style="width:${(disk.used/disk.total)*100}%;background:#38bdf8;"></div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const vmTbody = document.getElementById('pve-vm-list-tbody');
+      if (vmTbody) {
+        vmTbody.innerHTML = data.vms.map(vm => `
+          <tr>
+            <td style="font-family:monospace;color:#94a3b8;">${vm.vmid}</td>
+            <td style="font-weight:bold;color:white;">${vm.name}</td>
+            <td><span class="sys-badge" style="color:${vm.status==='running'?'#10b981':'#ef4444'};border-color:${vm.status==='running'?'#10b981':'#ef4444'}">${vm.status.toUpperCase()}</span></td>
+            <td style="font-size:11px;color:#94a3b8;">CPU: %${vm.cpu} | RAM: ${vm.ram} MB</td>
+          </tr>
+        `).join('');
+      }
+
+      const activeCount = data.vms.filter(v => v.name.startsWith('lab-') && v.status === 'running').length;
+      const el = document.getElementById('active-lab-count');
+      if (el) el.innerText = activeCount;
+    } catch (err) { console.error('PVE Sync Error:', err); }
+  }
+
+  // ── Lab Modal & Kaydet ──
+  function openLabModal(id) {
+    id = id || null;
+    if (id) {
+      const l = findDataById(rawLabs, id);
+      if (l) {
+        document.getElementById('labId').value     = l.id;
+        document.getElementById('labTitle').value  = l.title;
+        document.getElementById('labDiff').value   = l.difficulty;
+        document.getElementById('labPoints').value = l.points;
+        document.getElementById('labFlag').value   = l.flag;
+        document.getElementById('labHint').value   = l.hint;
+      }
+    } else {
+      ['labId','labTitle','labPoints','labFlag','labHint'].forEach(id => { document.getElementById(id).value = ''; });
+    }
+    document.getElementById('labModal').classList.add('active');
+  }
+
+  async function saveLab() {
+    const data = {
+      id:         document.getElementById('labId').value,
+      title:      document.getElementById('labTitle').value,
+      difficulty: document.getElementById('labDiff').value,
+      points:     document.getElementById('labPoints').value,
+      flag:       document.getElementById('labFlag').value,
+      hint:       document.getElementById('labHint').value
+    };
+    const res = await fetch('/api/admin/save-lab', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Kayıt başarısız!', 'error');
+  }
+
+  async function deleteLab(id) {
+    if (!confirm('Bu laboratuvarı silmek istediğinize emin misiniz?')) return;
+    const res = await fetch('/api/admin/delete-lab', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id }) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Silme başarısız!', 'error');
+  }
+
+  // ── CTF Modal & Kaydet ──
+  function openCtfModal(id) {
+    id = id || null;
+    if (id) {
+      const c = findDataById(rawCtf, id);
+      if (c) {
+        document.getElementById('ctfId').value       = c.id;
+        document.getElementById('ctfTitle').value    = c.title;
+        document.getElementById('ctfCat').value      = c.category;
+        document.getElementById('ctfPoints').value   = c.points;
+        document.getElementById('ctfFlag').value     = c.flag;
+        document.getElementById('ctfDownload').value = c.download;
+        document.getElementById('ctfHint').value     = c.hint;
+      }
+    } else {
+      ['ctfId','ctfTitle','ctfCat','ctfPoints','ctfFlag','ctfDownload','ctfHint'].forEach(id => { document.getElementById(id).value = ''; });
+    }
+    document.getElementById('ctfModal').classList.add('active');
+  }
+
+  async function saveCtf() {
+    const data = {
+      id:       document.getElementById('ctfId').value,
+      title:    document.getElementById('ctfTitle').value,
+      category: document.getElementById('ctfCat').value,
+      points:   document.getElementById('ctfPoints').value,
+      flag:     document.getElementById('ctfFlag').value,
+      hint:     document.getElementById('ctfHint').value,
+      download: document.getElementById('ctfDownload').value
+    };
+    const res = await fetch('/api/admin/save-ctf', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Kayıt başarısız!', 'error');
+  }
+
+  async function deleteCtf(id) {
+    if (!confirm('Bu CTF görevini silmek istediğinize emin misiniz?')) return;
+    const res = await fetch('/api/admin/delete-ctf', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id }) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Silme başarısız!', 'error');
+  }
+
+  // ── Senaryo Editörü ──
+  function openScenarioModal() {
+    ['sceId','sceTitle','sceDesc','sceVmid','scePoints','sceBanner'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('sceId').readOnly = false;
+    document.getElementById('sceTasksContainer').innerHTML = '';
+    document.getElementById('scenarioModal').classList.add('active');
+  }
+
+  function editScenario(id) {
+    const s = findDataById(rawScenarios, id);
+    if (!s) return;
+    document.getElementById('sceId').value     = s.id;
+    document.getElementById('sceId').readOnly  = true;
+    document.getElementById('sceTitle').value  = s.title;
+    document.getElementById('sceDesc').value   = s.description;
+    document.getElementById('sceVmid').value   = s.vmid;
+    document.getElementById('sceDiff').value   = s.difficulty;
+    document.getElementById('scePoints').value = s.points;
+    document.getElementById('sceBanner').value = s.banner || '';
+    const container = document.getElementById('sceTasksContainer');
+    container.innerHTML = '';
+    if (s.tasks) s.tasks.forEach(t => addTaskEntry(t));
+    document.getElementById('scenarioModal').classList.add('active');
+  }
+
+  function addTaskEntry(data) {
+    data = data || {};
+    const container = document.getElementById('sceTasksContainer');
+    const div = document.createElement('div');
+    div.className = 'task-entry';
+    div.innerHTML = `
+      <div class="task-entry-title">AŞAMA <span class="btn-remove-task" onclick="this.parentElement.parentElement.remove()">[-]</span></div>
+      <input type="text" class="t-title" placeholder="Başlık" value="${data.title || ''}">
+      <textarea class="t-question" style="height:60px;margin:5px 0;">${data.question || ''}</textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+        <input type="text"   class="t-flag"   placeholder="Flag"  value="${data.flag   || ''}">
+        <input type="number" class="t-points" placeholder="Puan"  value="${data.points || ''}">
+      </div>
+      <input type="hidden" class="t-id" value="${data.id || Date.now()}">
+    `;
+    container.appendChild(div);
+  }
+
+  async function saveScenario() {
+    const tasks = Array.from(document.querySelectorAll('#sceTasksContainer .task-entry')).map(entry => ({
+      id:       entry.querySelector('.t-id').value,
+      title:    entry.querySelector('.t-title').value,
+      question: entry.querySelector('.t-question').value,
+      flag:     entry.querySelector('.t-flag').value,
+      points:   parseInt(entry.querySelector('.t-points').value) || 0
+    }));
+    const data = {
+      id:          document.getElementById('sceId').value,
+      title:       document.getElementById('sceTitle').value,
+      description: document.getElementById('sceDesc').value,
+      vmid:        parseInt(document.getElementById('sceVmid').value) || 0,
+      difficulty:  document.getElementById('sceDiff').value,
+      points:      parseInt(document.getElementById('scePoints').value) || 0,
+      banner:      document.getElementById('sceBanner').value,
+      tasks
+    };
+    const res = await fetch('/api/admin/save-scenario', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Kayıt başarısız!', 'error');
+  }
+
+  async function deleteScenario(id) {
+    if (!confirm('Bu senaryoyu silmek istediğinize emin misiniz?')) return;
+    const res = await fetch('/api/admin/delete-scenario', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id }) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Silme başarısız!', 'error');
+  }
+
+  // ── Kullanıcı İşlemleri ──
+  async function resetUser(userId) {
+    if (!confirm('Bu kullanıcının tüm ilerlemesini sıfırlamak istediğinize emin misiniz?')) return;
+    const res = await fetch('/api/admin/reset-progress', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId }) });
+    if ((await res.json()).success) { showToast('Kullanıcı sıfırlandı.', 'success'); location.reload(); }
+    else showToast('Sıfırlama başarısız!', 'error');
+  }
+
+  async function deleteUser(userId) {
+    if (!confirm('Bu kullanıcıyı sistemden kaldırmak istediğinize emin misiniz?')) return;
+    const res = await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId }) });
+    if ((await res.json()).success) { showToast('Kullanıcı silindi.', 'success'); location.reload(); }
+    else showToast('Silme başarısız!', 'error');
+  }
+
+  async function stopUserVM(userId, vmid) {
+    if (!confirm(`VMID ${vmid} makinesini durdurmak ve kullanıcının VM kaydını sıfırlamak istediğinize emin misiniz?`)) return;
+    showToast('VM kapatılıyor...', 'success');
+    const res  = await fetch('/api/admin/stop-user-vm', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId }) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 1500); }
+    else showToast(data.message || 'Hata!', 'error');
+  }
+
+  // ── Şifre Değiştir ──
+  function openChangePassword(userId, username) {
+    document.getElementById('cpUserId').value    = userId;
+    document.getElementById('cpUsername').textContent = username;
+    document.getElementById('cpNewPassword').value    = '';
+    document.getElementById('cpConfirmPassword').value = '';
+    const msg = document.getElementById('cpMsg');
+    msg.style.display = 'none';
+    document.getElementById('changePasswordModal').classList.add('active');
+  }
+
+  async function submitChangePassword() {
+    const userId      = document.getElementById('cpUserId').value;
+    const newPassword = document.getElementById('cpNewPassword').value;
+    const confirm2    = document.getElementById('cpConfirmPassword').value;
+    const msg         = document.getElementById('cpMsg');
+
+    function showCpMsg(text, ok) {
+      msg.textContent   = text;
+      msg.style.display = 'block';
+      msg.style.background = ok ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+      msg.style.border     = ok ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+      msg.style.color      = ok ? '#10b981' : '#ef4444';
+    }
+
+    if (!newPassword || newPassword.length < 4) return showCpMsg('Şifre en az 4 karakter olmalı.', false);
+    if (newPassword !== confirm2)               return showCpMsg('Şifreler eşleşmiyor.', false);
+
+    const res  = await fetch('/api/admin/change-password', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId, newPassword }) });
+    const data = await res.json();
+    if (data.success) {
+      showCpMsg('✅ ' + data.message, true);
+      setTimeout(() => closeModal('changePasswordModal'), 1500);
+    } else {
+      showCpMsg('❌ ' + (data.message || 'Hata!'), false);
+    }
+  }
+
+  // ── Duyuru & Bildirim ──
+  async function updateAnnouncement() {
+    const announcement = document.getElementById('announcementInput').value;
+    const res = await fetch('/api/admin/announcement', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ announcement }) });
+    if ((await res.json()).success) showToast('Duyuru güncellendi.', 'success');
+    else showToast('Güncelleme başarısız!', 'error');
+  }
+
+  async function addNotification() {
+    const message = document.getElementById('notifInput').value.trim();
+    if (!message) return;
+    const res = await fetch('/api/admin/notification', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ message }) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Eklenemedi!', 'error');
+  }
+
+  async function deleteNotification(id) {
+    const res = await fetch('/api/admin/notification/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id }) });
+    if ((await res.json()).success) location.reload();
+    else showToast('Silinemedi!', 'error');
+  }
+
+  // ── Dosya Yükleme ──
+  async function uploadCtfFileAdmin() {
+    const fileInput = document.getElementById('ctfFileInputAdmin');
+    if (!fileInput.files[0]) return;
+    const formData = new FormData();
+    formData.append('ctfFile', fileInput.files[0]);
+    const res  = await fetch('/api/admin/upload-ctf-file', { method:'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('ctfDownload').value = data.filePath;
+      showToast('Dosya yüklendi: ' + data.filePath, 'success');
+    } else showToast('Yükleme başarısız!', 'error');
+  }
+
+  async function uploadScenarioBannerAdmin() {
+    const fileInput = document.getElementById('sceFileInput');
+    if (!fileInput.files[0]) return;
+    const formData = new FormData();
+    formData.append('sceBanner', fileInput.files[0]);
+    const res  = await fetch('/api/admin/upload-scenario-banner', { method:'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('sceBanner').value = data.filePath;
+      showToast('Banner yüklendi.', 'success');
+    } else showToast('Yükleme başarısız!', 'error');
+  }
+
+  // ── Hedefli Bildirim Gönder ──
+  async function sendTargetedNotification() {
+    const targetUserId = document.getElementById('targetUserSelect').value;
+    const message      = document.getElementById('notificationMessage').value.trim();
+    const severity     = document.getElementById('severitySelect').value;
+    const sound        = document.getElementById('soundToggle').checked;
+    if (!targetUserId) { showNotifResult('Lütfen bir kullanıcı seçin.', 'error'); return; }
+    if (!message)      { showNotifResult('Lütfen bir mesaj yazın.', 'error'); return; }
+    const res  = await fetch('/api/admin/notification/send', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ targetUserId, message, severity, sound }) });
+    const data = await res.json();
+    if (data.success) {
+      const opt = document.getElementById('targetUserSelect').options[document.getElementById('targetUserSelect').selectedIndex];
+      showNotifResult(data.delivered ? '✅ Bildirim ' + opt.text + ' kullanıcısına iletildi.' : '📭 ' + opt.text + ' çevrimdışı, bildirim beklemede.', data.delivered ? 'success' : 'info');
+      document.getElementById('notificationMessage').value = '';
+    } else showNotifResult('❌ Bildirim gönderilemedi.', 'error');
+  }
+
+  async function sendBroadcastNotification() {
+    const message  = document.getElementById('notificationMessage').value.trim();
+    const severity = document.getElementById('severitySelect').value;
+    const sound    = document.getElementById('soundToggle').checked;
+    if (!message) { showNotifResult('Lütfen bir mesaj yazın.', 'error'); return; }
+    if (!confirm('Tüm kullanıcılara "' + message + '" mesajını göndermek istediğinize emin misiniz?')) return;
+    const res  = await fetch('/api/admin/notification/broadcast', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ message, severity, sound }) });
+    const data = await res.json();
+    if (data.success) {
+      showNotifResult('📢 ' + data.deliveredCount + ' kullanıcıya iletildi.', 'success');
+      document.getElementById('notificationMessage').value = '';
+    } else showNotifResult('❌ Broadcast gönderilemedi.', 'error');
+  }
+
+  function showNotifResult(message, type) {
+    const el = document.getElementById('notificationResult');
+    if (!el) return;
+    el.textContent  = message;
+    el.className    = type;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
+  }
+
+  // ── Çevrimiçi Kullanıcı Kontrolü ──
+  async function checkOnlineUsers() {
+    try {
+      const res  = await fetch('/api/admin/online-users');
+      const data = await res.json();
+      if (data.success && data.onlineUsers) {
+        const select = document.getElementById('targetUserSelect');
+        if (select) {
+          Array.from(select.options).forEach(option => {
+            if (option.value) {
+              const isOnline = data.onlineUsers.map(String).includes(String(option.value));
+              option.setAttribute('data-online', isOnline.toString());
+              if (option.selected) updateUserStatusDisplay(isOnline);
+            }
+          });
+        }
+      }
+    } catch (err) { console.error('Çevrimiçi kontrol hatası:', err); }
+  }
+
+  function updateUserStatusDisplay(isOnline) {
+    const el = document.getElementById('onlineStatus');
+    if (!el) return;
+    if (isOnline) {
+      el.innerHTML   = '<span class="online-dot online"></span> Çevrimiçi';
+      el.style.color = '#10b981';
+    } else {
+      el.innerHTML   = '<span class="online-dot offline"></span> Çevrimdışı';
+      el.style.color = '#94a3b8';
+    }
+  }
+
+  // ── Bildirim Bell (Admin) ──
+  let _adminNotifs = JSON.parse(localStorage.getItem('adminNotifs') || '[]');
+
+  function _adminUpdateBadge() {
+    const unread = _adminNotifs.filter(n => !n.read).length;
+    const badge  = document.getElementById('notifBadge');
+    if (badge) badge.style.display = unread > 0 ? 'block' : 'none';
+  }
+
+  function _adminRenderList() {
+    const list = document.getElementById('notifList');
+    if (!list) return;
+    if (_adminNotifs.length === 0) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#475569;font-size:12px;font-family:JetBrains Mono,monospace;">Bildirim yok</div>';
+      return;
+    }
+    list.innerHTML = _adminNotifs.slice().reverse().map((n, i) => `
+      <div style="padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);opacity:${n.read?0.5:1};">
+        <div style="font-size:12px;color:#e2e8f0;line-height:1.4;">${n.message}</div>
+        <div style="font-size:10px;color:#475569;margin-top:3px;font-family:JetBrains Mono,monospace;">${new Date(n.createdAt).toLocaleString('tr-TR')}</div>
+      </div>
+    `).join('');
+  }
+
+  function handleNotification(notif) {
+    _adminNotifs.push({ ...notif, read: false });
+    if (_adminNotifs.length > 50) _adminNotifs = _adminNotifs.slice(-50);
+    localStorage.setItem('adminNotifs', JSON.stringify(_adminNotifs));
+    _adminUpdateBadge();
+    _adminRenderList();
+  }
+
+  function markAllAsRead() {
+    _adminNotifs.forEach(n => n.read = true);
+    localStorage.setItem('adminNotifs', JSON.stringify(_adminNotifs));
+    _adminUpdateBadge();
+    _adminRenderList();
+  }
+
+  function clearAllNotifications() {
+    _adminNotifs = [];
+    localStorage.setItem('adminNotifs', JSON.stringify(_adminNotifs));
+    _adminUpdateBadge();
+    _adminRenderList();
+  }
+
+  // ── Adminlik Yönetimi ──
+  async function loadAdminList() {
+    const container = document.getElementById('adminListCurrent');
+    const select    = document.getElementById('addAdminSelect');
+    if (!container) return;
+    try {
+      const data = await (await fetch('/api/admin/admins')).json();
+      if (!data.success) return;
+
+      // Mevcut adminler
+      container.innerHTML = data.admins.map(a => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(251,191,36,0.04);border:1px solid rgba(251,191,36,0.15);border-radius:8px;margin-bottom:8px;">
+          ${a.avatar
+            ? `<img src="${a.avatar}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(251,191,36,0.4);">`
+            : `<div style="width:34px;height:34px;border-radius:50%;background:rgba(251,191,36,0.15);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fbbf24;border:2px solid rgba(251,191,36,0.4);">${a.username[0].toUpperCase()}</div>`
+          }
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:white;">${a.username}</div>
+            <div style="font-size:10px;color:#fbbf24;font-family:'JetBrains Mono',monospace;margin-top:1px;">ADMİN</div>
+          </div>
+          ${a.username !== 'cansarihan' ? `
+          <button onclick="removeAdmin('${a.username}')" class="admin-btn admin-btn-del" style="padding:5px 10px;">
+            <span class="material-icons" style="font-size:12px;">remove_moderator</span> Kaldır
+          </button>` : `<span style="font-size:9px;color:#fbbf24;font-family:'JetBrains Mono',monospace;border:1px solid rgba(251,191,36,0.3);padding:2px 8px;border-radius:3px;">KURUCU</span>`}
+        </div>
+      `).join('') || '<div style="color:#475569;font-size:12px;font-family:JetBrains Mono,monospace;">Admin yok.</div>';
+
+      // Kullanıcı dropdown'ı doldur
+      if (select) {
+        select.innerHTML = '<option value="">-- Kullanıcı Seçin --</option>' +
+          data.users.map(u => `<option value="${u.username}">${u.username}</option>`).join('');
+      }
+    } catch(e) {
+      container.innerHTML = '<div style="color:#ef4444;font-size:12px;">Yüklenemedi.</div>';
+    }
+  }
+
+  async function addAdmin() {
+    const username = document.getElementById('addAdminSelect').value;
+    const msgEl    = document.getElementById('adminMsgEl');
+    if (!username) { showAdminMsg('Kullanıcı seçin.', false); return; }
+    const res  = await fetch('/api/admin/admins/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username }) });
+    const data = await res.json();
+    showAdminMsg(data.message, data.success);
+    if (data.success) loadAdminList();
+  }
+
+  async function removeAdmin(username) {
+    if (!confirm(`"${username}" kullanıcısının adminliğini kaldırmak istediğinize emin misiniz?`)) return;
+    const res  = await fetch('/api/admin/admins/remove', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username }) });
+    const data = await res.json();
+    showAdminMsg(data.message, data.success);
+    if (data.success) loadAdminList();
+  }
+
+  function showAdminMsg(text, ok) {
+    const el = document.getElementById('adminMsgEl');
+    if (!el) return;
+    el.textContent    = text;
+    el.style.display  = 'block';
+    el.style.background = ok ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+    el.style.border     = ok ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+    el.style.color      = ok ? '#10b981' : '#ef4444';
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
+  }
+
+  // ── Destek Talepleri (Admin) ──
+  async function loadAdminTickets() {
+    const container = document.getElementById('adminTicketsList');
+    if (!container) return;
+    const filter = document.getElementById('ticketFilterStatus')?.value || '';
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Yükleniyor...</div>';
+    try {
+      const data = await (await fetch('/api/admin/tickets')).json();
+      let tickets = data.tickets || [];
+      if (filter) tickets = tickets.filter(t => t.status === filter);
+      if (!tickets.length) {
+        container.innerHTML = '<div style="text-align:center;padding:32px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Talep yok.</div>';
+        return;
+      }
+      const statusMap = { open:'Açık', answered:'Yanıtlandı', closed:'Kapalı' };
+      const statusColors = { open:'#38bdf8', answered:'#10b981', closed:'#475569' };
+      container.innerHTML = `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kullanıcı</th>
+                <th>Konu</th>
+                <th>Kategori</th>
+                <th>Tarih</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tickets.map(t => {
+                const sc = statusColors[t.status] || '#38bdf8';
+                const d = new Date(t.updatedAt);
+                return `<tr>
+                  <td style="font-weight:700;color:#38bdf8;font-family:'JetBrains Mono',monospace;">${t.username}</td>
+                  <td style="color:white;font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.subject}</td>
+                  <td><span style="font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.25);font-family:'JetBrains Mono',monospace;">${t.category}</span></td>
+                  <td style="font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;">${d.toLocaleDateString('tr-TR')} ${d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})}</td>
+                  <td><span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;background:${sc}18;color:${sc};border:1px solid ${sc}44;">
+                    <span style="width:5px;height:5px;border-radius:50%;background:currentColor;"></span>${statusMap[t.status]||'Açık'}
+                  </span></td>
+                  <td>
+                    <button onclick="openAdminTicket(${JSON.stringify(t).replace(/"/g,'&quot;')})" class="admin-btn admin-btn-edit" style="padding:5px 10px;">
+                      <span class="material-icons" style="font-size:12px;">open_in_new</span> Görüntüle
+                    </button>
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch(e) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:12px;">Yüklenemedi.</div>';
+    }
+  }
+
+  function openAdminTicket(t) {
+    const modal = document.getElementById('ticketDetailModal');
+    const content = document.getElementById('ticketDetailContent');
+    const statusMap = { open:'Açık', answered:'Yanıtlandı', closed:'Kapalı' };
+    const statusColors = { open:'#38bdf8', answered:'#10b981', closed:'#475569' };
+    const sc = statusColors[t.status] || '#38bdf8';
+
+    const allMessages = [
+      { from:'user', username: t.username, message: t.message, createdAt: t.createdAt },
+      ...(t.replies || [])
+    ];
+
+    content.innerHTML = `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:800;color:white;margin-bottom:8px;">${t.subject}</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:10px;padding:2px 8px;border-radius:3px;background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.25);font-family:'JetBrains Mono',monospace;">${t.category}</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;background:${sc}18;color:${sc};border:1px solid ${sc}44;">
+            <span style="width:5px;height:5px;border-radius:50%;background:currentColor;"></span>${statusMap[t.status]||'Açık'}
+          </span>
+          <span style="font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;">${t.username} · ${new Date(t.createdAt).toLocaleString('tr-TR')}</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;max-height:320px;overflow-y:auto;padding-right:4px;">
+        ${allMessages.map(r => {
+          const isAdmin = r.from === 'admin';
+          const bc = isAdmin ? 'rgba(251,191,36,0.06)' : 'rgba(56,189,248,0.06)';
+          const bord = isAdmin ? 'rgba(251,191,36,0.2)' : 'rgba(56,189,248,0.15)';
+          const col = isAdmin ? '#fbbf24' : '#38bdf8';
+          return `<div style="display:flex;gap:10px;align-items:flex-start;${isAdmin?'flex-direction:row-reverse;':''}">
+            <div style="width:30px;height:30px;border-radius:50%;background:${isAdmin?'rgba(251,191,36,0.15)':'#334155'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:${col};flex-shrink:0;border:1.5px solid ${col}44;">${r.username[0].toUpperCase()}</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;${isAdmin?'justify-content:flex-end;':''}">
+                <span style="font-size:11px;font-weight:700;color:${col};font-family:'JetBrains Mono',monospace;">${r.username}${isAdmin?' ⭐':''}</span>
+                <span style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;">${new Date(r.createdAt).toLocaleString('tr-TR')}</span>
+              </div>
+              <div style="background:${bc};border:1px solid ${bord};border-radius:${isAdmin?'10px 0 10px 10px':'0 10px 10px 10px'};padding:10px 14px;font-size:12px;color:#cbd5e1;line-height:1.6;white-space:pre-wrap;">${r.message}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${t.status !== 'closed' ? `
+      <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+        <label style="display:block;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:8px;">YANIT YAZ</label>
+        <textarea id="adminReplyMsg" rows="3" placeholder="Yanıtınızı yazın..."
+          style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:white;padding:10px 12px;border-radius:8px;outline:none;font-size:13px;resize:none;box-sizing:border-box;line-height:1.6;"></textarea>
+        <div style="display:flex;gap:10px;margin-top:10px;">
+          <button onclick="submitAdminReply('${t.id}')" class="admin-btn-primary" style="flex:1;">
+            <span class="material-icons" style="font-size:14px;">send</span> Yanıtla
+          </button>
+          <button onclick="changeTicketStatus('${t.id}','closed')" class="admin-btn admin-btn-del" style="padding:10px 16px;">
+            Kapat
+          </button>
+        </div>
+      </div>` : '<div style="text-align:center;padding:12px;color:#475569;font-size:12px;font-family:JetBrains Mono,monospace;">Bu talep kapatılmıştır.</div>'}
+    `;
+    modal.style.display = 'flex';
+  }
+
+  async function submitAdminReply(ticketId) {
+    const msg = document.getElementById('adminReplyMsg')?.value.trim();
+    if (!msg) return showToast('Yanıt yazın.', 'error');
+    const res  = await fetch('/api/admin/ticket/reply', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ ticketId, message: msg }) });
+    const data = await res.json();
+    if (data.success) { showToast('Yanıt gönderildi.', 'success'); document.getElementById('ticketDetailModal').style.display='none'; loadAdminTickets(); }
+    else showToast(data.message || 'Hata!', 'error');
+  }
+
+  async function changeTicketStatus(ticketId, status) {
+    const res  = await fetch('/api/admin/ticket/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ ticketId, status }) });
+    const data = await res.json();
+    if (data.success) { showToast('Durum güncellendi.', 'success'); document.getElementById('ticketDetailModal').style.display='none'; loadAdminTickets(); }
+    else showToast('Hata!', 'error');
+  }
+
+  // ── Yasaklama Yönetimi (Admin) ──
+  let _banSelectedDays = null;
+
+  function openBanModal(userId, username) {
+    document.getElementById('banUserId').value = userId;
+    document.getElementById('banUsername').textContent = username;
+    document.getElementById('banReason').value = '';
+    document.getElementById('banDurationDisplay').textContent = '';
+    document.getElementById('customDaysRow').style.display = 'none';
+    document.querySelectorAll('.ban-preset-btn').forEach(b => b.classList.remove('active'));
+    _banSelectedDays = null;
+    document.getElementById('banModal').classList.add('active');
+  }
+
+  function setBanDays(days) {
+    _banSelectedDays = days;
+    document.querySelectorAll('.ban-preset-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector(`.ban-preset-btn[data-days="${days}"]`);
+    if (btn) btn.classList.add('active');
+    const display = document.getElementById('banDurationDisplay');
+    const customRow = document.getElementById('customDaysRow');
+    if (days === -1) {
+      customRow.style.display = 'block';
+      display.textContent = '';
+    } else {
+      customRow.style.display = 'none';
+      if (days === 0) display.textContent = '⚠ Süresiz yasak — manuel kaldırılana kadar devam eder.';
+      else {
+        const exp = new Date(Date.now() + days * 86400000);
+        display.textContent = `Bitiş: ${exp.toLocaleDateString('tr-TR')} ${exp.toLocaleTimeString('tr-TR')}`;
+      }
+    }
+  }
+
+  async function submitBan() {
+    const userId = document.getElementById('banUserId').value;
+    const reason = document.getElementById('banReason').value.trim();
+    let days = _banSelectedDays;
+    if (days === -1) {
+      days = parseInt(document.getElementById('banCustomDays').value);
+      if (!days || days < 1) return showToast('Geçerli bir gün sayısı girin.', 'error');
+    }
+    if (days === null) return showToast('Yasak süresi seçin.', 'error');
+    if (!reason) return showToast('Yasak sebebi yazın.', 'error');
+    const finalDays = days === 0 ? null : days;
+    const res  = await fetch('/api/admin/ban-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId, reason, days: finalDays }) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); closeModal('banModal'); location.reload(); }
+    else showToast(data.message || 'Hata!', 'error');
+  }
+
+  async function loadAdminBans() {
+    const container = document.getElementById('adminBansList');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Yükleniyor...</div>';
+    try {
+      const data = await (await fetch('/api/admin/bans')).json();
+      if (!data.success || !data.bans.length) {
+        container.innerHTML = '<div style="text-align:center;padding:32px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Aktif yasak yok.</div>';
+        return;
+      }
+      container.innerHTML = `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Kullanıcı</th>
+                <th>Sebep</th>
+                <th>Yasaklayan</th>
+                <th>Tarih</th>
+                <th>Bitiş</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.bans.map(b => `
+                <tr style="opacity:${b.active && !b.expired ? 1 : 0.5};">
+                  <td style="font-weight:700;color:${b.active && !b.expired ? '#ef4444' : '#475569'};font-family:'JetBrains Mono',monospace;">${b.username}</td>
+                  <td style="font-size:12px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${b.reason}">${b.reason}</td>
+                  <td style="font-size:11px;color:#fbbf24;font-family:'JetBrains Mono',monospace;">⭐ ${b.bannedBy}</td>
+                  <td style="font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;">${new Date(b.bannedAt).toLocaleDateString('tr-TR')}</td>
+                  <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${b.expiresAt ? '#fbbf24' : '#ef4444'};">
+                    ${b.expiresAt ? new Date(b.expiresAt).toLocaleDateString('tr-TR') : 'SÜRESİZ'}
+                  </td>
+                  <td>
+                    ${b.expired ? '<span style="font-size:9px;color:#475569;font-family:JetBrains Mono,monospace;border:1px solid #334155;padding:2px 6px;border-radius:3px;">SÜRESİ DOLDU</span>'
+                    : b.active ? '<span style="font-size:9px;color:#ef4444;font-family:JetBrains Mono,monospace;border:1px solid rgba(239,68,68,0.3);padding:2px 6px;border-radius:3px;background:rgba(239,68,68,0.08);">AKTİF</span>'
+                    : '<span style="font-size:9px;color:#10b981;font-family:JetBrains Mono,monospace;border:1px solid rgba(16,185,129,0.3);padding:2px 6px;border-radius:3px;">KALDIRILDI</span>'}
+                  </td>
+                  <td>
+                    ${b.active && !b.expired ? `<button onclick="unbanUser('${b.userId}','${b.username}')" class="admin-btn admin-btn-edit" style="padding:5px 10px;">
+                      <span class="material-icons" style="font-size:12px;">lock_open</span> Kaldır
+                    </button>` : '—'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch(e) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:12px;">Yüklenemedi.</div>';
+    }
+  }
+
+  async function unbanUser(userId, username) {
+    if (!confirm(`"${username}" kullanıcısının yasağını kaldırmak istediğinize emin misiniz?`)) return;
+    const res  = await fetch('/api/admin/unban-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId }) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); loadAdminBans(); }
+    else showToast(data.message || 'Hata!', 'error');
+  }
+
+  // ── Rozet Yönetimi (Admin) ──
+  let _badgeUsers = [];
+  let _currentBadgeId = null;
+
+  async function loadAdminBadges() {
+    const container = document.getElementById('adminBadgesList');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Yükleniyor...</div>';
+    try {
+      const data = await (await fetch('/api/admin/badges')).json();
+      _badgeUsers = data.users || [];
+      if (!data.success || !data.badges.length) {
+        container.innerHTML = '<div style="text-align:center;padding:32px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Rozet yok.</div>';
+        return;
+      }
+      const typeLabels = { special:'Özel', auto_all:'Herkese Otomatik', auto_firstblood:'İlk Kan Otomatik', auto_ctf:'CTF Otomatik', auto_lab:'Lab Otomatik', auto_scenario:'Senaryo Otomatik', manual:'Manuel Atama' };
+      container.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+          ${data.badges.map(b => `
+            <div style="background:rgba(17,24,39,0.8);border:1px solid ${b.color}33;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:all 0.2s;"
+              onmouseover="this.style.borderColor='${b.color}66'" onmouseout="this.style.borderColor='${b.color}33'">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:36px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:${b.color}15;border:1px solid ${b.color}33;border-radius:10px;">${b.icon}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:13px;font-weight:700;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.name}</div>
+                  <div style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:2px;">${typeLabels[b.type]||b.type}</div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:#64748b;line-height:1.4;">${b.desc||'—'}</div>
+              ${b.assignedTo && b.assignedTo.length ? `<div style="font-size:10px;color:${b.color};font-family:'JetBrains Mono',monospace;">Atanan: ${b.assignedTo.join(', ')}</div>` : ''}
+              <div style="display:flex;gap:6px;margin-top:auto;">
+                <button onclick="openEditBadgeModal(${JSON.stringify(b).replace(/"/g,'&quot;')})" class="admin-btn admin-btn-edit" style="flex:1;justify-content:center;">
+                  <span class="material-icons" style="font-size:12px;">edit</span> Düzenle
+                </button>
+                <button onclick="deleteBadge('${b.id}','${b.name}')" class="admin-btn admin-btn-del" style="padding:6px 10px;">
+                  <span class="material-icons" style="font-size:12px;">delete</span>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    } catch(e) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:12px;">Yüklenemedi.</div>';
+    }
+  }
+
+  function openCreateBadgeModal() {
+    _currentBadgeId = null;
+    document.getElementById('editBadgeId').value   = '';
+    document.getElementById('editBadgeName').value  = '';
+    document.getElementById('editBadgeIcon').value  = '🏅';
+    document.getElementById('editBadgeColor').value = '#38bdf8';
+    document.getElementById('editBadgeColorHex').value = '#38bdf8';
+    document.getElementById('editBadgeDesc').value  = '';
+    document.getElementById('assignedUsersList').innerHTML = '';
+    document.getElementById('assignSection').style.display = 'block';
+    populateUserSelect();
+    updateBadgePreview();
+    document.getElementById('badgeEditModal').classList.add('active');
+  }
+
+  function openEditBadgeModal(b) {
+    _currentBadgeId = b.id;
+    document.getElementById('editBadgeId').value   = b.id;
+    document.getElementById('editBadgeName').value  = b.name;
+    document.getElementById('editBadgeIcon').value  = b.icon;
+    document.getElementById('editBadgeColor').value = b.color || '#38bdf8';
+    document.getElementById('editBadgeColorHex').value = b.color || '#38bdf8';
+    document.getElementById('editBadgeDesc').value  = b.desc || '';
+    const showAssign = ['special','manual'].includes(b.type);
+    document.getElementById('assignSection').style.display = showAssign ? 'block' : 'none';
+    if (showAssign) {
+      populateUserSelect();
+      renderAssignedUsers(b.assignedTo || []);
+    }
+    updateBadgePreview();
+    document.getElementById('badgeEditModal').classList.add('active');
+  }
+
+  function populateUserSelect() {
+    const sel = document.getElementById('assignUserSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Kullanıcı Seç --</option>' +
+      _badgeUsers.map(u => `<option value="${u.username}">${u.username}</option>`).join('');
+  }
+
+  function renderAssignedUsers(list) {
+    const el = document.getElementById('assignedUsersList');
+    if (!el) return;
+    el.innerHTML = list.map(u => `
+      <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.3);border-radius:4px;font-size:11px;color:#38bdf8;font-family:'JetBrains Mono',monospace;">
+        ${u}
+      </span>
+    `).join('');
+  }
+
+  function selectBadgeIcon(icon) {
+    document.getElementById('editBadgeIcon').value = icon;
+    updateBadgePreview();
+  }
+
+  function updateBadgePreview() {
+    const icon  = document.getElementById('editBadgeIcon').value || '🏅';
+    const name  = document.getElementById('editBadgeName').value || 'ROZET';
+    const color = document.getElementById('editBadgeColor').value || '#38bdf8';
+    const prev  = document.getElementById('badgePreview');
+    const pname = document.getElementById('badgePreviewName');
+    if (prev)  prev.textContent  = icon;
+    if (pname) { pname.textContent = name.toUpperCase(); pname.style.color = color; }
+    document.getElementById('editBadgeColorHex').value = color;
+  }
+
+  function syncColorFromHex() {
+    const hex = document.getElementById('editBadgeColorHex').value;
+    if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+      document.getElementById('editBadgeColor').value = hex;
+      updateBadgePreview();
+    }
+  }
+
+  async function saveBadgeEdit() {
+    const id    = document.getElementById('editBadgeId').value;
+    const name  = document.getElementById('editBadgeName').value.trim();
+    const icon  = document.getElementById('editBadgeIcon').value.trim();
+    const color = document.getElementById('editBadgeColorHex').value.trim() || document.getElementById('editBadgeColor').value;
+    const desc  = document.getElementById('editBadgeDesc').value.trim();
+    if (!name || !icon) return showToast('İsim ve ikon zorunlu!', 'error');
+
+    let url, body;
+    if (id) {
+      url  = '/api/admin/badge/update';
+      body = { id, name, icon, color, desc };
+    } else {
+      url  = '/api/admin/badge/create';
+      body = { name, icon, color, desc, type: 'manual' };
+    }
+    const res  = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); closeModal('badgeEditModal'); loadAdminBadges(); }
+    else showToast(data.message || 'Hata!', 'error');
+  }
+
+  async function assignBadgeToUser(action) {
+    const badgeId  = document.getElementById('editBadgeId').value;
+    const username = document.getElementById('assignUserSelect').value;
+    if (!badgeId || !username) return showToast('Rozet ID ve kullanıcı gerekli.', 'error');
+    const res  = await fetch('/api/admin/badge/assign', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ badgeId, username, action }) });
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message, 'success');
+      // Atanan listesini güncelle
+      const badgesData = await (await fetch('/api/admin/badges')).json();
+      const b = badgesData.badges.find(x => x.id === badgeId);
+      if (b) renderAssignedUsers(b.assignedTo || []);
+    } else showToast(data.message || 'Hata!', 'error');
+  }
+
+  async function deleteBadge(id, name) {
+    if (!confirm('"' + name + '" rozetini silmek istediğinize emin misiniz?')) return;
+    const res  = await fetch('/api/admin/badge/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id }) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); loadAdminBadges(); }
+    else showToast(data.message || 'Silinemedi!', 'error');
+  }
+
+  // ── İlk Kan Yönetimi (Admin) ──
+  async function loadAdminFirstBloods() {
+    const container = document.getElementById('adminFirstBloodsList');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Yükleniyor...</div>';
+    try {
+      const data = await (await fetch('/api/admin/firstbloods')).json();
+      if (!data.success || !data.list.length) {
+        container.innerHTML = '<div style="text-align:center;padding:32px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Henüz ilk kan kaydı yok.</div>';
+        return;
+      }
+      const typeColors = { 'CTF': '#10b981', 'Lab': '#38bdf8', 'Senaryo': '#a78bfa', 'Bilinmiyor': '#475569' };
+      container.innerHTML = `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Görev</th>
+                <th>Tür</th>
+                <th>İlk Çözen</th>
+                <th>Tarih & Saat</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.list.map(fb => `
+                <tr>
+                  <td style="font-weight:700;color:white;">${fb.title}</td>
+                  <td>
+                    <span style="font-size:10px;padding:2px 8px;border-radius:3px;background:${typeColors[fb.type]}22;color:${typeColors[fb.type]};border:1px solid ${typeColors[fb.type]}44;font-family:'JetBrains Mono',monospace;font-weight:700;">${fb.type}</span>
+                  </td>
+                  <td style="color:#ef4444;font-weight:700;font-family:'JetBrains Mono',monospace;">🩸 ${fb.username}</td>
+                  <td style="font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;">${new Date(fb.solvedAt).toLocaleString('tr-TR')}</td>
+                  <td>
+                    <button onclick="deleteFirstBlood('${fb.challengeId}','${fb.title.replace(/'/g,"\\'")}')" class="admin-btn admin-btn-del" style="padding:5px 10px;">
+                      <span class="material-icons" style="font-size:12px;">delete</span> Sil
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;text-align:right;">Toplam ${data.list.length} kayıt</div>
+      `;
+    } catch(e) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:12px;">Yüklenemedi.</div>';
+    }
+  }
+
+  async function deleteFirstBlood(challengeId, title) {
+    if (!confirm('"' + title + '" görevinin ilk kan kaydını silmek istediğinize emin misiniz?')) return;
+    const res  = await fetch('/api/admin/delete-firstblood', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ challengeId }) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); loadAdminFirstBloods(); }
+    else showToast(data.message || 'Silinemedi!', 'error');
+  }
+
+  async function resetAllFirstBloods() {
+    if (!confirm('TÜM ilk kan kayıtlarını sıfırlamak istediğinize emin misiniz?\nBu işlem geri alınamaz!')) return;
+    const res  = await fetch('/api/admin/reset-firstbloods', { method:'POST' });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); loadAdminFirstBloods(); }
+    else showToast('Sıfırlanamadı!', 'error');
+  }
+
+  // ── Takım Yönetimi (Admin) ──
+  async function loadAdminTeams() {
+    const container = document.getElementById('adminTeamsList');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;padding:24px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Yükleniyor...</div>';
+    try {
+      const data = await (await fetch('/api/admin/teams')).json();
+      if (!data.success || !data.teams.length) {
+        container.innerHTML = '<div style="text-align:center;padding:32px;color:#475569;font-family:JetBrains Mono,monospace;font-size:12px;">Henüz takım yok.</div>';
+        return;
+      }
+      const medals = ['🥇','🥈','🥉'];
+      container.innerHTML = `
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Sıra</th>
+                <th>Takım Adı</th>
+                <th>Lider</th>
+                <th>Üyeler</th>
+                <th>Puan</th>
+                <th>Kuruluş</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.teams.map((t, i) => `
+                <tr>
+                  <td style="font-family:'JetBrains Mono',monospace;color:#475569;">${medals[i] || (i+1)}</td>
+                  <td style="font-weight:700;color:white;">${t.name}</td>
+                  <td style="color:#fbbf24;font-family:'JetBrains Mono',monospace;font-size:12px;">⭐ ${t.leaderUsername}</td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      ${t.members.map(m => `
+                        <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:4px;font-size:11px;color:#94a3b8;font-family:'JetBrains Mono',monospace;">
+                          ${m.username}
+                        </span>
+                      `).join('')}
+                      <span style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;">${t.memberCount}/4</span>
+                    </div>
+                  </td>
+                  <td style="font-family:'JetBrains Mono',monospace;color:#38bdf8;font-weight:700;">${t.points.toLocaleString()}</td>
+                  <td style="font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;">${new Date(t.createdAt).toLocaleDateString('tr-TR')}</td>
+                  <td>
+                    <button onclick="deleteTeam('${t.id}','${t.name.replace(/'/g,"\\'")}')" class="admin-btn admin-btn-del">
+                      <span class="material-icons" style="font-size:12px;">delete</span> Sil
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch(e) {
+      container.innerHTML = '<div style="text-align:center;padding:24px;color:#ef4444;font-size:12px;">Yüklenemedi.</div>';
+    }
+  }
+
+  async function deleteTeam(teamId, teamName) {
+    if (!confirm('"' + teamName + '" takımını silmek istediğinize emin misiniz?\nTüm üyeler takımdan çıkarılacak.')) return;
+    const res  = await fetch('/api/admin/delete-team', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ teamId }) });
+    const data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); loadAdminTeams(); }
+    else showToast(data.message || 'Silinemedi!', 'error');
+  }
+
+  // ── Kritik Modal ──
+  function showCriticalModal(notif) {
+    const existing = document.getElementById('criticalAlertOverlay');
+    if (existing) existing.remove();
+    const themes = {
+      danger:  { color:'#ef4444', glow:'rgba(239,68,68,0.4)',  icon:'🚨', label:'KRİTİK UYARI' },
+      warning: { color:'#fbbf24', glow:'rgba(251,191,36,0.4)', icon:'⚠️', label:'UYARI' },
+      success: { color:'#10b981', glow:'rgba(16,185,129,0.4)', icon:'✅', label:'BAŞARILI' },
+      info:    { color:'#38bdf8', glow:'rgba(56,189,248,0.4)', icon:'ℹ️', label:'BİLDİRİM' }
+    };
+    const t = themes[notif.severity] || themes.info;
+    const overlay = document.createElement('div');
+    overlay.id = 'criticalAlertOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(2,6,23,0.88);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(14px);';
+    overlay.innerHTML = `
+      <div style="max-width:520px;width:90%;background:rgba(10,15,30,0.97);border:2px solid ${t.color};border-radius:20px;padding:48px 36px;text-align:center;box-shadow:0 0 60px ${t.glow};position:relative;">
+        <div style="font-size:56px;margin-bottom:16px;">${t.icon}</div>
+        <div style="font-size:10px;letter-spacing:4px;color:${t.color};text-transform:uppercase;font-weight:800;margin-bottom:12px;font-family:'JetBrains Mono',monospace;">${t.label}</div>
+        <div style="font-size:18px;color:#f1f5f9;font-weight:700;line-height:1.6;margin-bottom:28px;">${notif.message}</div>
+        <div style="font-size:11px;color:#475569;margin-bottom:28px;font-family:'JetBrains Mono',monospace;">${new Date(notif.createdAt).toLocaleString('tr-TR')}</div>
+        <button id="criticalCloseBtn" style="background:${t.color};color:#020617;border:none;padding:12px 44px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:2px;">ANLADIM</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    function doClose() { overlay.remove(); document.removeEventListener('keydown', esc); }
+    document.getElementById('criticalCloseBtn').addEventListener('click', doClose);
+    function esc(e) { if (e.key === 'Escape') doClose(); }
+    document.addEventListener('keydown', esc);
+    overlay.addEventListener('click', e => { if (e.target === overlay) doClose(); });
+  }
+
+  // ── DOMContentLoaded ──
+  document.addEventListener('DOMContentLoaded', () => {
+    // Aktif sekmeyi geri yükle
+    const savedTab = localStorage.getItem('activeAdminTab') || 'viewDashboard';
+    switchMenu(savedTab);
+    if (savedTab === 'viewTeams') loadAdminTeams();
+    // Proxmox polling
+    refreshPveStats();
+    setInterval(() => {
+      if (localStorage.getItem('activeAdminTab') === 'viewDashboard') refreshPveStats();
+    }, 90000);  // 90 saniye
+
+    // Bildirim bell toggle
+    const bellBtn = document.getElementById('notifBellBtn');
+    const dropdown = document.getElementById('notifDropdown');
+    if (bellBtn && dropdown) {
+      bellBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = dropdown.style.display === 'block';
+        dropdown.style.display = open ? 'none' : 'block';
+        if (!open) { markAllAsRead(); }
+      });
+      document.addEventListener('click', e => {
+        if (!dropdown.contains(e.target) && e.target !== bellBtn) {
+          dropdown.style.display = 'none';
+        }
+      });
+    }
+
+    // Bildirim listesini yükle
+    _adminUpdateBadge();
+    _adminRenderList();
+
+    // Çevrimiçi kullanıcı kontrolü
+    const userSelect = document.getElementById('targetUserSelect');
+    if (userSelect) {
+      userSelect.addEventListener('change', function() {
+        const isOnline = this.options[this.selectedIndex].getAttribute('data-online') === 'true';
+        updateUserStatusDisplay(isOnline);
+      });
+      setTimeout(checkOnlineUsers, 1000);
+      setInterval(checkOnlineUsers, 15000);
+    }
+
+    // SSE bağlantısı
+    let sseSource = null;
+    let sseRetry  = 0;
+    function connectSSE() {
+      if (sseSource) sseSource.close();
+      sseSource = new EventSource('/api/notifications/stream');
+      sseSource.onmessage = e => {
+        try {
+          const notif = JSON.parse(e.data);
+          processNotification(notif);
+          showCriticalModal(notif);
+        } catch(err) {}
+      };
+      sseSource.onerror = () => {
+        sseSource.close();
+        if (sseRetry < 5) { sseRetry++; setTimeout(connectSSE, 5000); }
+      };
+      sseSource.addEventListener('ping', () => { sseRetry = 0; });
+    }
+    connectSSE();
+  });
+</script>

@@ -1,0 +1,147 @@
+<!-- Matrix Arka Plan — tüm sayfalarda -->
+<canvas id="globalMatrix" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;opacity:0.07;pointer-events:none;"></canvas>
+
+<aside class="dash-sidebar">
+
+  <!-- Logo — büyük -->
+  <div style="padding:16px 20px 14px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <img src="/defendialogo.png" alt="Defendia" style="height:100px;width:auto;filter:drop-shadow(0 0 12px rgba(56,189,248,0.6));object-fit:contain;transition:all 0.3s;"
+      onmouseover="this.style.filter='drop-shadow(0 0 22px rgba(56,189,248,0.9))';"
+      onmouseout="this.style.filter='drop-shadow(0 0 12px rgba(56,189,248,0.6))';">
+  </div>
+
+  <!-- Kullanıcı -->
+  <div class="dash-sidebar-user" style="text-align:center;align-items:center;">
+    <% if(typeof user !== 'undefined' && user) { %>
+      <% if(user.avatar) { %>
+        <img src="<%= user.avatar %>" class="dash-sidebar-avatar" style="margin:0 auto 8px;">
+      <% } else { %>
+        <div class="dash-sidebar-avatar-placeholder" style="margin:0 auto 8px;"><%= user.username[0].toUpperCase() %></div>
+      <% } %>
+      <div class="dash-sidebar-name" style="text-align:center;"><%= user.username.toUpperCase() %></div>
+      <div class="dash-sidebar-rank" id="sidebarLevel" style="text-align:center;">SEVİYE —</div>
+    <% } %>
+  </div>
+
+  <!-- Navigasyon -->
+  <nav class="dash-nav" id="dashNav">
+    <a href="/dashboard" class="dash-nav-item" data-path="/dashboard">
+      <span class="material-icons">grid_view</span>Ana Sayfa
+    </a>
+    <a href="/ctf" class="dash-nav-item" data-path="/ctf">
+      <span class="material-icons">security</span>CTF
+    </a>
+    <a href="/lab" class="dash-nav-item" data-path="/lab">
+      <span class="material-icons">dns</span>Laboratuvar
+    </a>
+    <a href="/scenarios" class="dash-nav-item" data-path="/scenarios">
+      <span class="material-icons">map</span>Senaryolar
+    </a>
+    <a href="/users" class="dash-nav-item" data-path="/users">
+      <span class="material-icons">leaderboard</span>Sıralama
+    </a>
+  </nav>
+
+  <!-- Alt Bölüm -->
+  <div class="dash-sidebar-bottom">
+    <% if(typeof user !== 'undefined' && user) { %>
+      <a href="/profile/<%= user.username %>" class="dash-nav-item" data-path="/profile">
+        <span class="material-icons">fingerprint</span>Profil
+      </a>
+      <a href="/teams" class="dash-nav-item" data-path="/teams">
+        <span class="material-icons">groups</span>Takım Yönetimi
+      </a>
+      <a href="/messages" class="dash-nav-item" data-path="/messages">
+        <span class="material-icons">forum</span>Sohbetlerim
+        <span class="pm-nav-badge hidden">0</span>
+      </a>
+      <a href="/support" class="dash-nav-item" data-path="/support">
+        <span class="material-icons">support_agent</span>Destek
+      </a>
+      <% if(typeof currentUserIsAdmin !== 'undefined' ? currentUserIsAdmin : ['cansarihan','resul'].includes(user.username)) { %>
+      <a href="/admin" class="dash-nav-item admin-item" data-path="/admin">
+        <span class="material-icons">admin_panel_settings</span>Admin Panel
+      </a>
+      <% } %>
+    <% } %>
+    <a href="/logout" class="dash-nav-item danger">
+      <span class="material-icons">power_settings_new</span>Çıkış Yap
+    </a>
+  </div>
+</aside>
+
+<script>
+(function() {
+  /* ── Matrix Arka Plan ── */
+  const canvas = document.getElementById('globalMatrix');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    const cols = Math.ceil(canvas.width / 16);
+    const drops = Array(cols).fill(1);
+    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
+    setInterval(() => {
+      ctx.fillStyle = 'rgba(8,12,24,0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '13px monospace';
+      drops.forEach((y, i) => {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * 16, y * 16);
+        if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+    }, 60);
+  }
+
+  /* ── Aktif sayfa tespiti ── */
+  const path = window.location.pathname;
+  document.querySelectorAll('#dashNav .dash-nav-item[data-path], .dash-sidebar-bottom .dash-nav-item[data-path]').forEach(link => {
+    const p = link.getAttribute('data-path');
+    const isActive = path === p || (p !== '/dashboard' && path.startsWith(p));
+    if (isActive) link.classList.add('active');
+  });
+
+  /* ── Level göster ── */
+  <% if(typeof user !== 'undefined' && user) { %>
+  const _sideUsername = '<%= user.username %>';
+  const lvlEl = document.getElementById('sidebarLevel');
+  if (lvlEl && _sideUsername) {
+    fetch('/api/leaderboard')
+      .then(r => r.json())
+      .then(data => {
+        const me = data.find(u => u.username === _sideUsername);
+        if (me) {
+          const maxPts = data.reduce((s, u) => Math.max(s, u.points), 0);
+          const ptsPerLvl = Math.ceil((maxPts || 2460) / 10);
+          const lvl = Math.min(10, Math.floor(me.points / ptsPerLvl) + 1);
+          lvlEl.textContent = 'SEVİYE ' + lvl;
+        }
+      })
+      .catch(() => {});
+  }
+  <% } %>
+
+  function updatePmNavBadge(count) {
+    document.querySelectorAll('.pm-nav-badge').forEach(badge => {
+      const n = Number(count) || 0;
+      badge.textContent = n > 9 ? '9+' : String(n);
+      badge.classList.toggle('hidden', n === 0);
+    });
+  }
+
+  function refreshPmNavBadge() {
+    fetch('/api/pm/unread-count')
+      .then(r => r.json())
+      .then(data => { if (data && data.success) updatePmNavBadge(data.unreadCount); })
+      .catch(() => {});
+  }
+  refreshPmNavBadge();
+  setInterval(refreshPmNavBadge, 12000);
+})();
+</script>

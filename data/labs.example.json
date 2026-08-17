@@ -1,0 +1,34 @@
+{
+    "901": {
+        "id": "901",
+        "title": "Ubuntu LFI Master",
+        "difficulty": "Kolay",
+        "points": 100,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya"
+    },
+    "902": {
+        "id": "902",
+        "title": "IDOR: Gizli Profiller",
+        "difficulty": "Orta",
+        "points": 200,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya"
+    },
+    "903": {
+        "id": "903",
+        "title": "XSS: Alert Avcısı",
+        "difficulty": "Orta",
+        "points": 250,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya"
+    },
+    "904": {
+        "id": "904",
+        "title": "SQLi: Veritabanı Sızıntısı",
+        "difficulty": "Zor",
+        "points": 300,
+        "flag": "REDACTED_FLAG",
+        "hint": "Ipucu buraya"
+    }
+}

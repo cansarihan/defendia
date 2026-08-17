@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Senaryolar</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/scenarios.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .hidden { display: none !important; }
+    .sce-layout { display:flex; flex:1; overflow:hidden; }
+    .sce-main { flex:1; overflow-y:auto; padding:20px; min-width:0; }
+    .sce-side { width:300px; min-width:300px; border-left:1px solid rgba(255,255,255,0.06); padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+    .sce-page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:16px; }
+    .sce-kicker { font-size:9px; font-weight:800; color:#475569; letter-spacing:2.4px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:6px; }
+    .sce-heading { font-size:24px; line-height:1.1; font-weight:900; color:#f8fafc; font-family:'JetBrains Mono',monospace; letter-spacing:1px; }
+    .sce-head-meta { font-size:10px; color:#64748b; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+    .sce-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+    .sce-summary-card { min-height:68px; background:rgba(17,24,39,0.72); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:13px 14px; display:flex; flex-direction:column; justify-content:center; }
+    .sce-summary-value { font-size:18px; line-height:1; font-weight:900; color:#f8fafc; font-family:'JetBrains Mono',monospace; }
+    .sce-summary-label { margin-top:7px; font-size:8px; font-weight:800; color:#475569; letter-spacing:1.5px; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+    .sce-filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; padding:10px; background:rgba(17,24,39,0.48); border:1px solid rgba(255,255,255,0.05); border-radius:10px; }
+    .filter-pill { padding:7px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); color:#64748b; font-size:10px; font-weight:800; cursor:pointer; transition:all 0.2s; font-family:'JetBrains Mono',monospace; letter-spacing:1px; }
+    .filter-pill:hover { color:#cbd5e1; border-color:rgba(255,255,255,0.18); background:rgba(255,255,255,0.04); }
+    .filter-pill.active { color:#38bdf8; border-color:rgba(56,189,248,0.5); background:rgba(56,189,248,0.08); box-shadow:0 0 12px rgba(56,189,248,0.08); }
+    .sce-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+    .sce-card { background:rgba(17,24,39,0.72); border:1px solid rgba(255,255,255,0.06); border-radius:8px; overflow:hidden; text-decoration:none; display:flex; flex-direction:column; position:relative; min-height:292px; transition:border-color 0.2s, transform 0.2s, box-shadow 0.2s, background 0.2s; }
+    .sce-card:hover { border-color:rgba(56,189,248,0.36); transform:translateY(-2px); background:rgba(17,24,39,0.86); box-shadow:0 12px 28px rgba(0,0,0,0.24); }
+    .sce-card.completed-card { border-color:rgba(16,185,129,0.26); background:rgba(16,185,129,0.045); }
+    .sce-card.completed-card:hover { border-color:rgba(16,185,129,0.5); box-shadow:0 12px 28px rgba(0,0,0,0.24); }
+    .sce-cover { position:relative; height:145px; background:rgba(15,23,42,0.6); overflow:hidden; flex-shrink:0; }
+    .sce-cover img { width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.01); transition:transform 0.25s ease; }
+    .sce-card:hover .sce-cover img { transform:scale(1.04); }
+    .sce-cover::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(8,13,24,0.02),rgba(8,13,24,0.68)); pointer-events:none; }
+    .sce-status-badge { position:absolute; top:10px; right:10px; z-index:1; font-size:8px; font-weight:900; padding:3px 7px; border-radius:4px; font-family:'JetBrains Mono',monospace; letter-spacing:1px; }
+    .sce-status-badge.done { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.45); color:#10b981; }
+    .sce-status-badge.active { background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.45); color:#38bdf8; }
+    .sce-status-badge.idle { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); color:#94a3b8; }
+    .sce-card-body { padding:14px 15px 15px; display:flex; flex-direction:column; flex:1; }
+    .sce-title { font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:7px; line-height:1.25; }
+    .sce-desc { font-size:11px; color:#64748b; line-height:1.5; flex:1; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:12px; }
+    .sce-meta { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
+    .sce-diff { font-size:8px; font-weight:900; padding:3px 7px; border-radius:4px; font-family:'JetBrains Mono',monospace; letter-spacing:1px; border:1px solid; white-space:nowrap; }
+    .sce-task-count { font-size:9px; color:#475569; font-family:'JetBrains Mono',monospace; }
+    .sce-pts { font-size:10px; color:#64748b; font-family:'JetBrains Mono',monospace; margin-left:auto; white-space:nowrap; flex-shrink:0; }
+    .sce-progress { margin-top:auto; }
+    .sce-progress-head { display:flex; justify-content:space-between; font-size:9px; color:#475569; font-family:'JetBrains Mono',monospace; margin-bottom:5px; }
+    .sce-prog-bar { height:4px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+    .sce-prog-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#10b981,#38bdf8); box-shadow:0 0 8px rgba(56,189,248,0.35); }
+    .sce-side-card { background:rgba(17,24,39,0.76); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:15px; backdrop-filter:blur(6px); }
+    .sce-side-title { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:9px; font-weight:900; color:#475569; letter-spacing:2px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:12px; }
+    .sce-progress-big { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+    .sce-progress-num { font-size:34px; font-weight:900; color:#38bdf8; font-family:'JetBrains Mono',monospace; line-height:1; text-shadow:0 0 14px rgba(56,189,248,0.35); }
+    .sce-progress-sub { font-size:9px; color:#64748b; font-family:'JetBrains Mono',monospace; text-align:right; line-height:1.5; }
+    .sce-side-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .sce-side-metric { background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.045); border-radius:8px; padding:10px; }
+    .sce-side-metric strong { display:block; font-size:14px; color:#f8fafc; font-family:'JetBrains Mono',monospace; line-height:1; }
+    .sce-side-metric span { display:block; margin-top:6px; font-size:8px; color:#475569; font-weight:800; letter-spacing:1px; font-family:'JetBrains Mono',monospace; }
+    .sce-break-row { margin-bottom:11px; }
+    .sce-break-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:5px; font-size:10px; font-weight:800; color:#64748b; font-family:'JetBrains Mono',monospace; }
+    .sce-break-bar { height:4px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+    .sce-break-fill { height:100%; border-radius:4px; background:#38bdf8; }
+    .sce-list-row { display:flex; align-items:center; gap:9px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); color:inherit; text-decoration:none; }
+    .sce-list-row:last-child { border-bottom:none; padding-bottom:0; }
+    .sce-list-dot { width:7px; height:7px; border-radius:50%; background:#38bdf8; box-shadow:0 0 8px rgba(56,189,248,0.45); flex-shrink:0; }
+    .sce-list-dot.done { background:#10b981; box-shadow:0 0 8px rgba(16,185,129,0.45); }
+    .sce-list-main { flex:1; min-width:0; }
+    .sce-list-title { display:block; font-size:11px; font-weight:800; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sce-list-sub { display:block; margin-top:3px; font-size:9px; color:#475569; font-family:'JetBrains Mono',monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sce-list-score { font-size:10px; font-weight:900; color:#38bdf8; font-family:'JetBrains Mono',monospace; flex-shrink:0; }
+    .sce-empty { padding:10px 0 2px; text-align:center; font-size:11px; color:#334155; font-family:'JetBrains Mono',monospace; }
+    @media (max-width:1180px) { .sce-layout { flex-direction:column; overflow-y:auto; } .sce-main { overflow:visible; } .sce-side { width:auto; min-width:0; border-left:none; border-top:1px solid rgba(255,255,255,0.06); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:820px) { .sce-page-head { align-items:flex-start; flex-direction:column; } .sce-summary-grid, .sce-side { grid-template-columns:1fr; } .sce-grid { grid-template-columns:1fr; } .sce-head-meta { white-space:normal; } }
+  </style>
+</head>
+<body>
+<%
+  const scenarioList = Object.values(scenarios || {});
+  const solvedSet = new Set(user.solved || []);
+  const progressMap = user.scenario_progress || {};
+  const scenarioRows = scenarioList.map(s => {
+    const tasks = s.tasks || [];
+    const totalTasks = tasks.length;
+    const solvedTasks = tasks.filter(task => solvedSet.has(`${s.id}_task_${task.id}`)).length;
+    const currentTask = Math.max(progressMap[s.id] || 0, solvedTasks);
+    const clampedCurrent = Math.min(currentTask, totalTasks);
+    const pct = totalTasks ? Math.round((clampedCurrent / totalTasks) * 100) : 0;
+    const taskPoints = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
+    const solvedPoints = tasks.filter(task => solvedSet.has(`${s.id}_task_${task.id}`)).reduce((sum, task) => sum + (task.points || 0), 0);
+    let statusText = 'Başlanmadı';
+    let statusKey = 'pending';
+    if (clampedCurrent > 0 && clampedCurrent < totalTasks) { statusText = 'Devam ediyor'; statusKey = 'active'; }
+    if (totalTasks > 0 && clampedCurrent >= totalTasks) { statusText = 'Tamamlandı'; statusKey = 'solved'; }
+    return { s, tasks, totalTasks, currentTask: clampedCurrent, pct, taskPoints, solvedPoints, statusText, statusKey };
+  });
+  const totalScenarios = scenarioRows.length;
+  const completedScenarios = scenarioRows.filter(row => row.statusKey === 'solved').length;
+  const activeScenarios = scenarioRows.filter(row => row.statusKey === 'active').length;
+  const totalTasks = scenarioRows.reduce((sum, row) => sum + row.totalTasks, 0);
+  const solvedTasks = scenarioRows.reduce((sum, row) => sum + row.currentTask, 0);
+  const scenarioProgress = totalTasks ? Math.round((solvedTasks / totalTasks) * 100) : 0;
+  const totalScenarioPoints = scenarioRows.reduce((sum, row) => sum + row.taskPoints, 0);
+  const solvedScenarioPoints = scenarioRows.reduce((sum, row) => sum + row.solvedPoints, 0);
+  const remainingScenarioPoints = Math.max(0, totalScenarioPoints - solvedScenarioPoints);
+  const difficultyOrder = { Kolay: 1, Orta: 2, Zor: 3 };
+  const difficultyStats = ['Kolay', 'Orta', 'Zor'].map(label => {
+    const rows = scenarioRows.filter(row => (row.s.difficulty || 'Orta') === label);
+    return { label, total: rows.length, solved: rows.filter(row => row.statusKey === 'solved').length };
+  });
+  const nextScenarios = scenarioRows
+    .filter(row => row.statusKey !== 'solved')
+    .sort((a, b) => (b.pct - a.pct) || (difficultyOrder[a.s.difficulty || 'Orta'] || 9) - (difficultyOrder[b.s.difficulty || 'Orta'] || 9) || (a.taskPoints || 0) - (b.taskPoints || 0))
+    .slice(0, 4);
+  const recentScenarioSolves = Object.entries(user.solvedDates || {})
+    .map(([id, solvedAt]) => {
+      for (const row of scenarioRows) {
+        const task = row.tasks.find(t => `${row.s.id}_task_${t.id}` === id);
+        if (task) return { scenario: row.s, task, solvedAt };
+      }
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
+    .slice(0, 4);
+%>
+<div class="dash-shell">
+  <%- include('partials/sidebar-only', { currentPage: 'scenarios' }) %>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">SENARYOLAR // <span>OPERASYON_MİSYONLARI</span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <div class="dash-content-area sce-layout">
+      <div class="sce-main page-enter">
+        <div class="sce-page-head">
+          <div>
+            <div class="sce-kicker">OPERASYON_SENARYOLARI // VAKA HAVUZU</div>
+            <div class="sce-heading">Senaryolar</div>
+          </div>
+          <div class="sce-head-meta"><%= totalScenarios %> senaryo · <%= completedScenarios %> tamamlandı · <%= remainingScenarioPoints %> puan kaldı</div>
+        </div>
+
+        <div class="sce-summary-grid">
+          <div class="sce-summary-card">
+            <div class="sce-summary-value"><%= scenarioProgress %>%</div>
+            <div class="sce-summary-label">GENEL İLERLEME</div>
+          </div>
+          <div class="sce-summary-card">
+            <div class="sce-summary-value"><%= completedScenarios %>/<%= totalScenarios %></div>
+            <div class="sce-summary-label">TAMAMLANAN SENARYO</div>
+          </div>
+          <div class="sce-summary-card">
+            <div class="sce-summary-value"><%= solvedScenarioPoints %></div>
+            <div class="sce-summary-label">TOPLANAN PUAN</div>
+          </div>
+          <div class="sce-summary-card">
+            <div class="sce-summary-value"><%= solvedTasks %>/<%= totalTasks %></div>
+            <div class="sce-summary-label">ÇÖZÜLEN TASK</div>
+          </div>
+        </div>
+
+        <!-- Filtreler -->
+        <div class="sce-filter-bar">
+          <button class="filter-pill active" data-filter="status" data-value="all">Tümü</button>
+          <button class="filter-pill" data-filter="status" data-value="pending">Başlanmadı</button>
+          <button class="filter-pill" data-filter="status" data-value="active">Devam Ediyor</button>
+          <button class="filter-pill" data-filter="status" data-value="solved">Tamamlandı</button>
+          <div style="width:1px;background:rgba(255,255,255,0.08);margin:0 4px;"></div>
+          <button class="filter-pill active" data-filter="difficulty" data-value="all">Tüm Zorluk</button>
+          <button class="filter-pill" data-filter="difficulty" data-value="Kolay" style="color:#10b981;border-color:rgba(16,185,129,0.3);">Kolay</button>
+          <button class="filter-pill" data-filter="difficulty" data-value="Orta" style="color:#fbbf24;border-color:rgba(251,191,36,0.3);">Orta</button>
+          <button class="filter-pill" data-filter="difficulty" data-value="Zor" style="color:#ef4444;border-color:rgba(239,68,68,0.3);">Zor</button>
+        </div>
+
+        <div class="sce-grid" id="scenarioGrid">
+          <% scenarioRows.forEach((row, index) => {
+            const s = row.s;
+            const dColors = { Kolay:'#10b981', Orta:'#fbbf24', Zor:'#ef4444' };
+            const dc = dColors[s.difficulty] || '#38bdf8';
+          %>
+          <a href="/scenario/<%= s.id %>" class="sce-card <%= row.statusKey==='solved'?'completed-card':'' %> fade-in-up stagger-<%= (index%5)+1 %>"
+             data-status="<%= row.statusKey %>" data-difficulty="<%= s.difficulty || 'Orta' %>">
+            <div class="sce-cover">
+              <img src="<%= s.banner || '/defendialogo.png' %>" alt="<%= s.title %>">
+              <span class="sce-status-badge <%= row.statusKey === 'solved' ? 'done' : (row.statusKey === 'active' ? 'active' : 'idle') %>"><%= row.statusText.toUpperCase() %></span>
+            </div>
+            <div class="sce-card-body">
+              <div class="sce-meta">
+                <span class="sce-diff" style="color:<%= dc %>;border-color:<%= dc %>;"><%= (s.difficulty || 'Orta').toUpperCase() %></span>
+                <span class="sce-task-count"><%= row.totalTasks %> TASK</span>
+                <span class="sce-pts"><%= row.taskPoints || s.points || 0 %> PUAN</span>
+              </div>
+              <div class="sce-title"><%= s.title %></div>
+              <div class="sce-desc"><%= s.description || 'Operasyon detayları senaryo içerisinde listelenir.' %></div>
+              <div class="sce-progress">
+                <div class="sce-progress-head"><span>İLERLEME</span><span><%= row.currentTask %>/<%= row.totalTasks %> · <%= row.pct %>%</span></div>
+                <div class="sce-prog-bar"><div class="sce-prog-fill" style="width:<%= row.pct %>%;"></div></div>
+              </div>
+            </div>
+          </a>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="sce-side">
+        <div class="sce-side-card">
+          <div class="sce-side-title">
+            <span>SENARYO İSTATİSTİĞİ</span>
+            <span class="material-icons" style="font-size:14px;color:#38bdf8;">query_stats</span>
+          </div>
+          <div class="sce-progress-big">
+            <div class="sce-progress-num"><%= scenarioProgress %>%</div>
+            <div class="sce-progress-sub">
+              <%= completedScenarios %>/<%= totalScenarios %> senaryo<br>
+              <%= solvedScenarioPoints %>/<%= totalScenarioPoints %> puan
+            </div>
+          </div>
+          <div class="sce-prog-bar" style="margin-top:12px;">
+            <div class="sce-prog-fill" style="width:<%= scenarioProgress %>%;"></div>
+          </div>
+          <div class="sce-side-grid">
+            <div class="sce-side-metric"><strong><%= remainingScenarioPoints %></strong><span>KALAN PUAN</span></div>
+            <div class="sce-side-metric"><strong><%= activeScenarios %></strong><span>DEVAM EDEN</span></div>
+          </div>
+        </div>
+
+        <div class="sce-side-card">
+          <div class="sce-side-title">
+            <span>TASK İLERLEMESİ</span>
+            <span class="material-icons" style="font-size:14px;color:#10b981;">checklist</span>
+          </div>
+          <div class="sce-side-grid">
+            <div class="sce-side-metric"><strong><%= solvedTasks %></strong><span>ÇÖZÜLEN TASK</span></div>
+            <div class="sce-side-metric"><strong><%= totalTasks %></strong><span>TOPLAM TASK</span></div>
+          </div>
+        </div>
+
+        <div class="sce-side-card">
+          <div class="sce-side-title">
+            <span>ZORLUK DAĞILIMI</span>
+            <span class="material-icons" style="font-size:14px;color:#fbbf24;">stacked_bar_chart</span>
+          </div>
+          <% difficultyStats.forEach(stat => {
+            const pct = stat.total ? Math.round((stat.solved / stat.total) * 100) : 0;
+            const color = stat.label === 'Kolay' ? '#10b981' : (stat.label === 'Orta' ? '#fbbf24' : '#ef4444');
+          %>
+            <div class="sce-break-row">
+              <div class="sce-break-head">
+                <span><%= stat.label.toUpperCase() %></span>
+                <span><%= stat.solved %>/<%= stat.total %> · <%= pct %>%</span>
+              </div>
+              <div class="sce-break-bar"><div class="sce-break-fill" style="width:<%= pct %>%;background:<%= color %>;box-shadow:0 0 8px <%= color %>55;"></div></div>
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="sce-side-card">
+          <div class="sce-side-title">
+            <span>SIRADAKİ OPERASYONLAR</span>
+            <span class="material-icons" style="font-size:14px;color:#38bdf8;">flag</span>
+          </div>
+          <% if(nextScenarios.length === 0) { %>
+            <div class="sce-empty">Tüm senaryolar tamamlandı</div>
+          <% } else { %>
+            <% nextScenarios.forEach(row => { %>
+              <a class="sce-list-row" href="/scenario/<%= row.s.id %>">
+                <span class="sce-list-dot"></span>
+                <span class="sce-list-main">
+                  <span class="sce-list-title"><%= row.s.title %></span>
+                  <span class="sce-list-sub"><%= row.statusText %> · <%= row.currentTask %>/<%= row.totalTasks %> task</span>
+                </span>
+                <span class="sce-list-score"><%= row.taskPoints || row.s.points || 0 %>p</span>
+              </a>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <div class="sce-side-card">
+          <div class="sce-side-title">
+            <span>SON ÇÖZÜMLER</span>
+            <span class="material-icons" style="font-size:14px;color:#10b981;">history</span>
+          </div>
+          <% if(recentScenarioSolves.length === 0) { %>
+            <div class="sce-empty">Henüz senaryo çözüm kaydı yok</div>
+          <% } else { %>
+            <% recentScenarioSolves.forEach(item => { %>
+              <a class="sce-list-row" href="/scenario/<%= item.scenario.id %>">
+                <span class="sce-list-dot done"></span>
+                <span class="sce-list-main">
+                  <span class="sce-list-title"><%= item.task.title || item.scenario.title %></span>
+                  <span class="sce-list-sub"><%= item.scenario.title %> · <%= new Date(item.solvedAt).toLocaleDateString('tr-TR') %></span>
+                </span>
+                <span class="sce-list-score"><%= item.task.points || 0 %>p</span>
+              </a>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const activeFilters = { status: 'all', difficulty: 'all' };
+document.querySelectorAll('.sce-filter-bar .filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.filter;
+    document.querySelectorAll('.sce-filter-bar .filter-pill[data-filter="' + group + '"]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilters[group] = btn.dataset.value;
+    document.querySelectorAll('.sce-card').forEach(c => {
+      const sm = activeFilters.status==='all' || c.dataset.status===activeFilters.status;
+      const dm = activeFilters.difficulty==='all' || c.dataset.difficulty===activeFilters.difficulty;
+      c.classList.toggle('hidden', !(sm && dm));
+    });
+  });
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const bell=document.getElementById('notifBellBtn'),drop=document.getElementById('notifDropdown');
+  if(bell&&drop){loadNotificationData();bell.addEventListener('click',e=>{e.stopPropagation();const o=drop.classList.toggle('active');if(o)markAllAsRead();});document.addEventListener('click',e=>{if(!bell.contains(e.target)&&!drop.contains(e.target))drop.classList.remove('active');});document.getElementById('notifClearBtn').addEventListener('click',clearAllNotifications);}
+  let es=null,r=0;function conn(){if(es)es.close();es=new EventSource('/api/notifications/stream');es.onmessage=e=>{try{processNotification(JSON.parse(e.data));}catch(err){}};es.onerror=()=>{es.close();if(r++<3)setTimeout(conn,5000);};es.addEventListener('ping',()=>{r=0;});}conn();
+});
+
+/* ── Bildirim Yardımcı Fonksiyonları ── */
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

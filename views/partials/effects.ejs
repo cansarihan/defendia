@@ -1,0 +1,130 @@
+<% const terminalTitle = typeof overlayText !== 'undefined' ? overlayText : 'DEFENDIA_OS_INITIALIZING_//'; %>
+
+<canvas id="bn-matrix-bg" style="position: fixed; inset: 0; z-index: 9999; background: #020617; pointer-events: none; transition: opacity 0.5s ease;"></canvas>
+
+<div id="bn-terminal-overlay" style="position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(15, 23, 42, 0.1) 0%, rgba(2, 6, 23, 0.9) 100%); font-family: 'Fira Code', monospace; transition: opacity 0.4s ease; overflow: hidden; pointer-events: all;">
+    
+    <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 10001; opacity: 0.5;"></div>
+
+    <div id="bn-terminal-box" style="position: relative; z-index: 10002; width: 650px; background: rgba(0, 0, 0, 0.9); border: 1px solid #38bdf8; border-radius: 12px; box-shadow: 0 0 50px rgba(56, 189, 248, 0.2); padding: 30px; overflow: hidden;">
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="/defendialogo.png" style="height: 110px; filter: drop-shadow(0 0 15px #38bdf8); animation: defendia-pulse 1s infinite alternate;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(56, 189, 248, 0.3); padding-bottom: 12px; margin-bottom: 20px;">
+            <div style="color: #38bdf8; font-size: 12px; font-weight: bold; letter-spacing: 1px;">[<%= terminalTitle %>]</div>
+            <div style="color: #10b981; font-size: 11px; font-weight: bold;">ENCRYPTION: AES-256-GCM</div>
+        </div>
+
+        <div style="display: flex; gap: 25px;">
+            <div id="bn-logs" style="flex: 1; height: 130px; font-size: 11px; color: #10b981; overflow: hidden; line-height: 1.7; font-family: 'Courier New', monospace;"></div>
+            
+            <div id="bn-hex" style="width: 200px; height: 130px; font-size: 11px; color: #38bdf8; opacity: 0.5; overflow: hidden; border-left: 1px solid rgba(56, 189, 248, 0.2); padding-left: 15px; font-family: monospace;"></div>
+        </div>
+
+        <div style="margin-top: 25px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-bottom: 8px; font-weight: bold;">
+                <span id="bn-action">BYPASSING_CORE...</span>
+                <span id="bn-percent">0%</span>
+            </div>
+            <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.1);">
+                <div id="bn-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); box-shadow: 0 0 15px #38bdf8; transition: width 0.05s linear;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes defendia-pulse {
+        from { transform: scale(1); filter: drop-shadow(0 0 10px #38bdf8); }
+        to { transform: scale(1.05); filter: drop-shadow(0 0 25px #10b981); }
+    }
+</style>
+
+<script>
+    (function() {
+        const overlay = document.getElementById('bn-terminal-overlay');
+        const matrixCanvas = document.getElementById('bn-matrix-bg');
+        const logs = document.getElementById('bn-logs');
+        const hex = document.getElementById('bn-hex');
+        const bar = document.getElementById('bn-bar');
+        const percent = document.getElementById('bn-percent');
+        const action = document.getElementById('bn-action');
+
+        const logPool = ["> Auth request...", "> Defendia Shield active.", "> Root handshake...", "> Bypassing firewall...", "> Kernel access: OK", "> Session started."];
+        const actions = ["DECRYPTING", "SHIELD_BYPASS", "LINKING", "SUCCESS"];
+
+        // 1. DATA FLOW (Turbo)
+        let count = 0;
+        const flowInt = setInterval(() => {
+            if(logs && count < logPool.length) {
+                const div = document.createElement('div');
+                div.innerText = logPool[count++];
+                logs.appendChild(div);
+                logs.scrollTop = logs.scrollHeight;
+            }
+            if(hex) {
+                const h = document.createElement('div');
+                h.innerText = "0x" + Math.random().toString(16).substr(2, 10).toUpperCase();
+                hex.appendChild(h);
+                if(hex.childNodes.length > 10) hex.removeChild(hex.firstChild);
+            }
+        }, 120);
+
+        // 2. 1.5 SECONDS TURBO LOGIC
+        const start = Date.now();
+        const duration = 1200; // 1.2 sn dolum
+
+        const timer = setInterval(() => {
+            const elapsed = Date.now() - start;
+            const prog = Math.min((elapsed / duration) * 100, 100);
+            
+            if(bar) bar.style.width = prog + "%";
+            if(percent) percent.innerText = Math.floor(prog) + "%";
+            if(action) action.innerText = actions[Math.floor(prog/30)] || "DONE.";
+
+            if(prog >= 100) {
+                clearInterval(timer);
+                clearInterval(flowInt);
+                
+                // ⚡ AUTOMATIC CLEANUP (Sayfaya Giriş Garantisi)
+                setTimeout(() => {
+                    if(overlay) {
+                        overlay.style.opacity = '0';
+                        overlay.style.pointerEvents = 'none'; // Tıklamayı anında aç
+                    }
+                    if(matrixCanvas) {
+                        matrixCanvas.style.opacity = '0';
+                    }
+
+                    setTimeout(() => {
+                        if(overlay) overlay.remove();
+                        if(matrixCanvas) matrixCanvas.remove();
+                    }, 400);
+                }, 200);
+            }
+        }, 30);
+
+        // 3. MATRIX ARKA PLAN
+        if(matrixCanvas) {
+            const ctx = matrixCanvas.getContext('2d');
+            let w = matrixCanvas.width = window.innerWidth;
+            let h = matrixCanvas.height = window.innerHeight;
+            const columns = Math.floor(w / 20);
+            const drops = Array(columns).fill(1);
+            function draw() {
+                ctx.fillStyle = "rgba(2, 6, 23, 0.15)";
+                ctx.fillRect(0, 0, w, h);
+                drops.forEach((y, i) => {
+                    ctx.fillStyle = Math.random() > 0.5 ? "#38bdf8" : "#10b981";
+                    ctx.font = "15px monospace";
+                    ctx.fillText(Math.floor(Math.random()*2), i*20, y*20);
+                    if(y*20 > h && Math.random() > 0.985) drops[i] = 0;
+                    drops[i]++;
+                });
+            }
+            setInterval(draw, 45);
+        }
+    })();
+</script>

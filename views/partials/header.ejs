@@ -1,0 +1,450 @@
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/animations.css">
+<link rel="stylesheet" href="/css/notifications.css">
+
+<!-- ══════════════════════════════════════════
+     OS SIDEBAR
+══════════════════════════════════════════ -->
+<aside class="os-sidebar">
+
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <img src="/defendialogo.png" alt="Defendia">
+    <div class="sidebar-logo-text">DEFENDIA<br>ARENA</div>
+  </div>
+
+  <!-- Kullanıcı -->
+  <% if (typeof user !== 'undefined' && user) { %>
+  <div class="sidebar-user">
+    <% if(user.avatar) { %>
+      <img src="<%= user.avatar %>" class="sidebar-avatar" alt="avatar">
+    <% } else { %>
+      <div class="sidebar-avatar-placeholder"><%= user.username[0].toUpperCase() %></div>
+    <% } %>
+    <div class="sidebar-user-info">
+      <div class="sidebar-username"><%= user.username %></div>
+      <div class="sidebar-rank">OPERATÖR</div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Navigasyon -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Navigasyon</div>
+
+    <a href="/dashboard" class="sidebar-link global-nav-btn" data-path="/dashboard">
+      <span class="material-icons">grid_view</span>
+      Dashboard
+    </a>
+    <a href="/lab" class="sidebar-link global-nav-btn" data-path="/lab">
+      <span class="material-icons">science</span>
+      Laboratuvar
+    </a>
+    <a href="/ctf" class="sidebar-link global-nav-btn" data-path="/ctf">
+      <span class="material-icons">security</span>
+      CTF
+    </a>
+    <a href="/scenarios" class="sidebar-link global-nav-btn" data-path="/scenarios">
+      <span class="material-icons">map</span>
+      Senaryolar
+    </a>
+    <a href="/users" class="sidebar-link global-nav-btn" data-path="/users">
+      <span class="material-icons">leaderboard</span>
+      Sıralama
+    </a>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Hesap</div>
+
+    <% if (typeof user !== 'undefined' && user) { %>
+      <a href="/profile/<%= user.username %>" class="sidebar-link global-nav-btn" data-path="/profile">
+        <span class="material-icons">fingerprint</span>
+        Profilim
+      </a>
+      <a href="/messages" class="sidebar-link global-nav-btn" data-path="/messages">
+        <span class="material-icons">forum</span>
+        Sohbetlerim
+        <span class="pm-nav-badge hidden">0</span>
+      </a>
+    <% } %>
+
+    <% if (typeof user !== 'undefined' && user && ['cansarihan', 'resul'].includes(user.username)) { %>
+      <div class="sidebar-divider"></div>
+      <a href="/admin" class="sidebar-link admin-link global-nav-btn" data-path="/admin">
+        <span class="material-icons">admin_panel_settings</span>
+        Admin Panel
+      </a>
+    <% } %>
+
+    <div class="sidebar-divider"></div>
+
+    <a href="/logout" class="sidebar-link danger">
+      <span class="material-icons">power_settings_new</span>
+      Çıkış
+    </a>
+  </nav>
+
+</aside>
+
+<!-- ══════════════════════════════════════════
+     OS MAIN (topbar + content wrapper)
+══════════════════════════════════════════ -->
+<div class="os-main">
+
+  <!-- Üst Bar -->
+  <header class="os-topbar">
+    <div class="topbar-left">
+      <span class="topbar-breadcrumb" id="topbarBreadcrumb">
+        DEFENDIA_OS // <span id="topbarPage">LOADING</span>
+      </span>
+
+      <!-- Arama -->
+      <div class="topbar-search">
+        <span class="material-icons topbar-search-icon">search</span>
+        <input type="text" class="topbar-search-input" id="searchInput" placeholder="Ara... (Ctrl+K)">
+        <div class="search-dropdown" id="searchDropdown"></div>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Bildirim Zili -->
+      <div style="position:relative;">
+        <button class="topbar-icon-btn" id="notifBellBtn" title="Bildirimler">
+          <span class="material-icons">notifications</span>
+          <span class="notif-badge hidden" id="notifBadge">0</span>
+        </button>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-dropdown-header">Bildirimler</div>
+          <div class="notif-list" id="notifList">
+            <div class="notif-empty">Henüz bildirim yok</div>
+          </div>
+          <button class="notif-clear-btn" id="notifClearBtn">Tümünü Temizle</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- İçerik buraya gelecek (os-content her sayfada açılıp kapanacak) -->
+
+<script>
+/* ══ AKTİF SAYFA TESPİTİ ══ */
+document.addEventListener('DOMContentLoaded', () => {
+  const currentPath = window.location.pathname;
+  const navBtns = document.querySelectorAll('.global-nav-btn');
+  const pageNames = {
+    '/dashboard': 'DASHBOARD',
+    '/lab':       'LABORATUVAR',
+    '/ctf':       'CTF',
+    '/scenarios': 'SENARYOLAR',
+    '/users':     'SIRALAMA',
+    '/profile':   'PROFİL',
+    '/messages':  'SOHBETLERİM',
+    '/admin':     'ADMIN_PANEL',
+  };
+
+  navBtns.forEach(btn => {
+    const p = btn.getAttribute('data-path');
+    if (p && (currentPath === p || (p !== '/dashboard' && currentPath.startsWith(p)))) {
+      btn.classList.add('active');
+      const el = document.getElementById('topbarPage');
+      if (el) el.textContent = pageNames[p] || p.replace('/', '').toUpperCase();
+    }
+  });
+
+  /* ══ ARAMA ══ */
+  const searchInput    = document.getElementById('searchInput');
+  const searchDropdown = document.getElementById('searchDropdown');
+
+  if (searchInput && searchDropdown && typeof window.__searchData !== 'undefined') {
+    searchInput.addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      if (q.length < 2) { searchDropdown.classList.remove('active'); return; }
+      performSearch(q);
+    });
+
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); searchInput.focus(); }
+      if (e.key === 'Escape') { searchDropdown.classList.remove('active'); searchInput.blur(); }
+    });
+
+    document.addEventListener('click', e => {
+      if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target))
+        searchDropdown.classList.remove('active');
+    });
+  }
+
+  /* ══ BİLDİRİM ZİLİ ══ */
+  const bellBtn      = document.getElementById('notifBellBtn');
+  const dropdown     = document.getElementById('notifDropdown');
+  const notifBadge   = document.getElementById('notifBadge');
+  const notifList    = document.getElementById('notifList');
+  const notifClearBtn = document.getElementById('notifClearBtn');
+
+  if (bellBtn && dropdown) {
+    loadNotificationData();
+
+    bellBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = dropdown.classList.toggle('active');
+      if (open) markAllAsRead();
+    });
+
+    document.addEventListener('click', e => {
+      if (!bellBtn.contains(e.target) && !dropdown.contains(e.target))
+        dropdown.classList.remove('active');
+    });
+
+    notifClearBtn.addEventListener('click', clearAllNotifications);
+  }
+
+  refreshPmNavBadge();
+  setInterval(refreshPmNavBadge, 12000);
+});
+
+function updatePmNavBadge(count) {
+  document.querySelectorAll('.pm-nav-badge').forEach(badge => {
+    const n = Number(count) || 0;
+    badge.textContent = n > 9 ? '9+' : String(n);
+    badge.classList.toggle('hidden', n === 0);
+  });
+}
+
+function refreshPmNavBadge() {
+  fetch('/api/pm/unread-count')
+    .then(r => r.json())
+    .then(data => { if (data && data.success) updatePmNavBadge(data.unreadCount); })
+    .catch(() => {});
+}
+
+/* ══ ARAMA FONKSİYONLARI ══ */
+function performSearch(query) {
+  const dropdown = document.getElementById('searchDropdown');
+  const data = window.__searchData;
+  const ctf  = data.ctf.filter(i => i.title.toLowerCase().includes(query));
+  const labs  = data.labs.filter(i => i.title.toLowerCase().includes(query));
+  const sce   = data.scenarios.filter(i => i.title.toLowerCase().includes(query));
+
+  if (!ctf.length && !labs.length && !sce.length) {
+    dropdown.innerHTML = '<div class="search-no-results">Sonuç bulunamadı</div>';
+    dropdown.classList.add('active');
+    return;
+  }
+
+  let html = '';
+  if (ctf.length) {
+    html += '<div class="search-category"><div class="search-category-title">CTF</div>';
+    ctf.forEach(i => { html += `<div class="search-result-item" onclick="location.href='/ctf'"><span class="search-result-title">${i.title}</span><span class="search-result-meta">${i.points} PTS</span></div>`; });
+    html += '</div>';
+  }
+  if (labs.length) {
+    html += '<div class="search-category"><div class="search-category-title">LAB</div>';
+    labs.forEach(i => { html += `<div class="search-result-item" onclick="location.href='/lab'"><span class="search-result-title">${i.title}</span><span class="search-result-meta">${i.points} PTS</span></div>`; });
+    html += '</div>';
+  }
+  if (sce.length) {
+    html += '<div class="search-category"><div class="search-category-title">SENARYO</div>';
+    sce.forEach(i => { html += `<div class="search-result-item" onclick="location.href='/scenario/${i.id}'"><span class="search-result-title">${i.title}</span><span class="search-result-meta">${i.points} PTS</span></div>`; });
+    html += '</div>';
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.classList.add('active');
+}
+
+/* ══ BİLDİRİM YARDIMCI FONKSİYONLARI ══ */
+function loadNotificationData() {
+  const count   = parseInt(localStorage.getItem('notif_unread_count') || '0');
+  const history = JSON.parse(localStorage.getItem('notif_history') || '[]');
+  updateBadgeDisplay(count);
+  renderNotificationList(history);
+}
+
+function updateBadgeDisplay(count) {
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  badge.textContent = count;
+  badge.classList.toggle('hidden', count === 0);
+}
+
+function renderNotificationList(history) {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  if (!history.length) { list.innerHTML = '<div class="notif-empty">Henüz bildirim yok</div>'; return; }
+  const colors = { info:'#38bdf8', success:'#10b981', warning:'#fbbf24', danger:'#ef4444' };
+  list.innerHTML = history.slice(-10).reverse().map(n => `
+    <div class="notif-item" style="border-left-color:${colors[n.severity]||colors.info}">
+      <div class="notif-item-message">${n.message}</div>
+      <div class="notif-item-time">${formatNotifTime(n.createdAt)}</div>
+    </div>`).join('');
+}
+
+function markAllAsRead() {
+  localStorage.setItem('notif_unread_count', '0');
+  updateBadgeDisplay(0);
+}
+
+function clearAllNotifications() {
+  localStorage.setItem('notif_history', '[]');
+  localStorage.setItem('notif_unread_count', '0');
+  updateBadgeDisplay(0);
+  renderNotificationList([]);
+  document.getElementById('notifDropdown').classList.remove('active');
+}
+
+function formatNotifTime(ts) {
+  if (!ts) return 'Bilinmiyor';
+  const diff = Math.floor((Date.now() - new Date(ts)) / 60000);
+  if (diff < 1)  return 'Az önce';
+  if (diff < 60) return `${diff} dk önce`;
+  const h = Math.floor(diff / 60);
+  if (h < 24)    return `${h} saat önce`;
+  return new Date(ts).toLocaleDateString('tr-TR');
+}
+
+function getSeverityColor(s) {
+  return { info:'#38bdf8', success:'#10b981', warning:'#fbbf24', danger:'#ef4444' }[s] || '#38bdf8';
+}
+
+/* ══ SSE BİLDİRİM SİSTEMİ ══ */
+<% if (typeof user !== 'undefined' && user) { %>
+document.addEventListener('DOMContentLoaded', () => {
+  // Popup container
+  const pc = document.createElement('div');
+  pc.id = 'notifPopupContainer';
+  pc.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:12px;pointer-events:none;';
+  document.body.appendChild(pc);
+
+  // SSE bağlantısı
+  let es = null, retries = 0;
+  function connectSSE() {
+    if (es) es.close();
+    es = new EventSource('/api/notifications/stream');
+    es.onmessage = e => {
+      try {
+        const notif = JSON.parse(e.data);
+        if (notif.type === 'firstblood') {
+          // İlk kan özel bildirimi
+          handleNotification(notif); // geçmişe ekle
+          showFirstBloodBanner(notif);
+        } else {
+          handleNotification(notif);
+        }
+      } catch(err) {}
+    };
+    es.onerror   = () => { es.close(); if (retries++ < 3) setTimeout(connectSSE, 5000); };
+    es.addEventListener('ping', () => { retries = 0; });
+  }
+  connectSSE();
+});
+<% } %>
+
+/* ══ BİLDİRİM İŞLEME ══ */
+function handleNotification(notif) {
+  showCriticalModal(notif);
+  if (notif.sound !== false) playSound();
+  addToHistory(notif);
+  updateBadge();
+  animateBell();
+}
+
+function addToHistory(notif) {
+  const h = JSON.parse(localStorage.getItem('notif_history') || '[]');
+  h.push(notif);
+  const last10 = h.slice(-10);
+  localStorage.setItem('notif_history', JSON.stringify(last10));
+  renderNotificationList(last10);
+}
+
+function updateBadge() {
+  const n = parseInt(localStorage.getItem('notif_unread_count') || '0') + 1;
+  localStorage.setItem('notif_unread_count', n.toString());
+  const badge = document.getElementById('notifBadge');
+  if (badge) { badge.textContent = n; badge.classList.remove('hidden'); }
+}
+
+function animateBell() {
+  const btn = document.getElementById('notifBellBtn');
+  if (btn) { btn.style.animation = 'bellPulse 2s'; setTimeout(() => btn.style.animation = '', 2000); }
+}
+
+function playSound() {
+  if (localStorage.getItem('notif_sound_enabled') === 'false') return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 440; osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.start(); osc.stop(ctx.currentTime + 0.3);
+  } catch(e) {}
+}
+
+/* ══ TAM EKRAN BİLDİRİM MODALI ══ */
+function showFirstBloodBanner(notif) {
+  const existing = document.getElementById('firstBloodOverlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'firstBloodOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(8,12,24,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(16px);animation:pageEnter 0.35s ease;';
+  overlay.innerHTML = `
+    <div style="max-width:480px;width:90%;background:rgba(13,18,36,0.98);border:2px solid #ef4444;border-radius:20px;padding:48px 36px;text-align:center;box-shadow:0 0 80px rgba(239,68,68,0.5);animation:fadeInUp 0.35s ease;position:relative;">
+      <div style="font-size:80px;margin-bottom:8px;animation:bellPulse 0.8s infinite;">🩸</div>
+      <div style="font-size:10px;letter-spacing:4px;color:#ef4444;text-transform:uppercase;font-weight:800;margin-bottom:10px;font-family:'JetBrains Mono',monospace;">İLK KAN</div>
+      <div style="font-size:17px;color:#f1f5f9;font-weight:700;line-height:1.5;margin-bottom:28px;">${notif.message.replace('🩸 İLK KAN! ','')}</div>
+      <button id="fbCloseBtn" style="background:#ef4444;color:#080c18;border:none;padding:12px 44px;border-radius:8px;font-size:13px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 0 20px rgba(239,68,68,0.4);">ANLADIM</button>
+      <div style="position:absolute;top:12px;left:12px;width:16px;height:16px;border-top:2px solid #ef4444;border-left:2px solid #ef4444;border-radius:2px 0 0 0;opacity:0.6;"></div>
+      <div style="position:absolute;bottom:12px;right:12px;width:16px;height:16px;border-bottom:2px solid #ef4444;border-right:2px solid #ef4444;border-radius:0 0 2px 0;opacity:0.6;"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+  function close() { overlay.style.animation='fadeOut 0.3s forwards'; setTimeout(()=>overlay.remove(),300); document.removeEventListener('keydown',esc); }
+  document.getElementById('fbCloseBtn').addEventListener('click', close);
+  function esc(e) { if(e.key==='Escape') close(); }
+  document.addEventListener('keydown', esc);
+  overlay.addEventListener('click', e => { if(e.target===overlay) close(); });
+}
+
+function showCriticalModal(notif) {
+  const existing = document.getElementById('criticalAlertOverlay');
+  if (existing) existing.remove();
+
+  const themes = {
+    danger:  { color:'#ef4444', glow:'rgba(239,68,68,0.4)',  icon:'🚨', label:'KRİTİK UYARI', bg:'rgba(239,68,68,0.06)',  pulse:true  },
+    warning: { color:'#fbbf24', glow:'rgba(251,191,36,0.4)', icon:'⚠️', label:'UYARI',         bg:'rgba(251,191,36,0.06)', pulse:false },
+    success: { color:'#10b981', glow:'rgba(16,185,129,0.4)', icon:'✅', label:'BAŞARILI',       bg:'rgba(16,185,129,0.06)', pulse:false },
+    info:    { color:'#38bdf8', glow:'rgba(56,189,248,0.4)', icon:'ℹ️', label:'BİLDİRİM',      bg:'rgba(56,189,248,0.06)', pulse:false },
+  };
+  const t = themes[notif.severity] || themes.info;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'criticalAlertOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(8,12,24,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(16px);animation:pageEnter 0.35s ease;';
+
+  overlay.innerHTML = `
+    <div style="max-width:520px;width:90%;background:rgba(13,18,36,0.98);border:2px solid ${t.color};border-radius:16px;padding:48px 40px;text-align:center;box-shadow:0 0 80px ${t.glow};animation:fadeInUp 0.35s ease;position:relative;background-image:radial-gradient(ellipse at top,${t.bg} 0%,transparent 65%);">
+      <div style="font-size:56px;margin-bottom:16px;${t.pulse?'animation:bellPulse 1s infinite;':''}">${t.icon}</div>
+      <div style="font-size:9px;letter-spacing:4px;color:${t.color};text-transform:uppercase;font-weight:800;margin-bottom:12px;font-family:'JetBrains Mono',monospace;">${t.label}</div>
+      <div style="font-size:18px;color:#f1f5f9;font-weight:700;line-height:1.6;margin-bottom:28px;">${notif.message}</div>
+      <div style="font-size:10px;color:#475569;margin-bottom:28px;font-family:'JetBrains Mono',monospace;">${new Date(notif.createdAt).toLocaleString('tr-TR')}</div>
+      <button id="criticalCloseBtn" style="background:${t.color};color:#080c18;border:none;padding:12px 44px;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 0 20px ${t.glow};font-family:'Inter',sans-serif;">ANLADIM</button>
+      <div style="position:absolute;top:12px;left:12px;width:16px;height:16px;border-top:2px solid ${t.color};border-left:2px solid ${t.color};border-radius:2px 0 0 0;opacity:0.6;"></div>
+      <div style="position:absolute;top:12px;right:12px;width:16px;height:16px;border-top:2px solid ${t.color};border-right:2px solid ${t.color};border-radius:0 2px 0 0;opacity:0.6;"></div>
+      <div style="position:absolute;bottom:12px;left:12px;width:16px;height:16px;border-bottom:2px solid ${t.color};border-left:2px solid ${t.color};border-radius:0 0 0 2px;opacity:0.6;"></div>
+      <div style="position:absolute;bottom:12px;right:12px;width:16px;height:16px;border-bottom:2px solid ${t.color};border-right:2px solid ${t.color};border-radius:0 0 2px 0;opacity:0.6;"></div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  function close() {
+    overlay.style.animation = 'fadeOut 0.3s forwards';
+    setTimeout(() => overlay.remove(), 300);
+    document.removeEventListener('keydown', esc);
+  }
+
+  document.getElementById('criticalCloseBtn').addEventListener('click', close);
+  function esc(e) { if (e.key === 'Escape') close(); }
+  document.addEventListener('keydown', esc);
+  if (!t.pulse) overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+}
+</script>

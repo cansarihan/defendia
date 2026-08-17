@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Sohbetlerim</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .pm-page{flex:1;overflow:hidden;padding:24px;}
+    .pm-shell{height:calc(100vh - 104px);min-height:620px;display:grid;grid-template-columns:360px minmax(0,1fr);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;background:rgba(17,24,39,.72);box-shadow:0 24px 70px rgba(0,0,0,.25);backdrop-filter:blur(10px);}
+    .pm-sidebar{min-width:0;border-right:1px solid rgba(255,255,255,.08);background:rgba(10,15,30,.78);display:flex;flex-direction:column;}
+    .pm-new{height:76px;border:0;border-bottom:1px solid rgba(16,185,129,.2);background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(56,189,248,.13));color:#d1fae5;font-size:13px;font-weight:900;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;box-shadow:inset 0 -1px 0 rgba(56,189,248,.18);}
+    .pm-new:hover{background:linear-gradient(135deg,rgba(16,185,129,.28),rgba(56,189,248,.2));color:#f8fafc;}
+    .pm-new .material-icons{color:#38bdf8;filter:drop-shadow(0 0 8px rgba(56,189,248,.45));}
+    .pm-tools{display:grid;grid-template-columns:48px 1fr;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(8,12,24,.58);}
+    .pm-sort{border:1px solid rgba(16,185,129,.35);border-radius:8px;background:rgba(16,185,129,.11);color:#10b981;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;}
+    .pm-sort:hover,.pm-sort.active{background:rgba(16,185,129,.2);box-shadow:0 0 18px rgba(16,185,129,.22);}
+    .pm-input{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.055);border-radius:8px;color:#e2e8f0;padding:12px 13px;font-size:13px;outline:none;}
+    .pm-input:focus{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.06);}
+    .pm-user-picker{display:none;border-bottom:1px solid rgba(255,255,255,.08);padding:12px 14px;background:rgba(8,12,24,.72);}
+    .pm-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+    .pm-tab{border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.04);color:#94a3b8;padding:9px 10px;font-size:10px;font-weight:900;letter-spacing:.8px;cursor:pointer;}
+    .pm-tab.active{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.12);color:#10b981;}
+    .pm-group-create{display:none;gap:8px;flex-direction:column;}
+    .pm-group-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px;}
+    .pm-mini-btn{border:1px solid rgba(56,189,248,.32);background:rgba(56,189,248,.1);color:#38bdf8;border-radius:8px;padding:10px 12px;font-size:10px;font-weight:900;cursor:pointer;}
+    .pm-mini-btn.success{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.13);color:#10b981;}
+    .pm-mini-btn.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#ef4444;}
+    .pm-user-row.selected{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.1);}
+    .pm-invites{display:none;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(16,185,129,.06);}
+    .pm-invite-card{border:1px solid rgba(16,185,129,.22);border-radius:9px;background:rgba(8,12,24,.64);padding:10px;margin-top:8px;}
+    .pm-invite-title{font-size:12px;font-weight:900;color:#f8fafc;}
+    .pm-invite-meta{margin-top:3px;font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace;}
+    .pm-invite-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;}
+    .pm-user-list,.pm-conv-list{overflow-y:auto;}
+    .pm-user-list{max-height:260px;margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+    .pm-conv-list{flex:1;}
+    .pm-user-row,.pm-conv-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.045);cursor:pointer;transition:background .18s,border-color .18s;}
+    .pm-user-row{border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:10px;background:rgba(255,255,255,.03);}
+    .pm-conv-row:hover,.pm-conv-row.active{background:rgba(56,189,248,.07);}
+    .pm-conv-row.active{border-left:3px solid #38bdf8;}
+    .pm-conv-row.typing .pm-last{color:#10b981;font-weight:900;}
+    .pm-avatar,.pm-letter{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.1);flex-shrink:0;}
+    .pm-avatar{object-fit:cover;}
+    .pm-letter{display:flex;align-items:center;justify-content:center;background:#334155;color:white;font-size:18px;font-weight:900;}
+    .pm-main{flex:1;min-width:0;}
+    .pm-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .pm-name-line{display:flex;align-items:center;gap:7px;min-width:0;}
+    .pm-name{font-size:14px;font-weight:900;color:#f8fafc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .pm-badges{display:inline-flex;align-items:center;gap:3px;flex-shrink:0;}
+    .pm-badge-mini{width:18px;height:18px;border-radius:6px;border:1px solid currentColor;background:rgba(255,255,255,.045);display:inline-flex;align-items:center;justify-content:center;font-size:10px;line-height:1;cursor:pointer;box-shadow:0 0 10px currentColor33;}
+    .pm-badge-more{font-size:9px;font-weight:900;color:#94a3b8;font-family:'JetBrains Mono',monospace;}
+    .pm-time{font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+    .pm-last{margin-top:5px;font-size:12px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .pm-unread{min-width:20px;height:20px;border-radius:999px;background:#10b981;color:#04111f;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+    .pm-online{width:9px;height:9px;border-radius:50%;background:#475569;display:inline-block;box-shadow:none;}
+    .pm-online.on{background:#10b981;box-shadow:0 0 8px #10b981;}
+    .pm-chat{min-width:0;min-height:0;height:100%;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,rgba(56,189,248,.05),transparent 40%),rgba(13,18,36,.86);}
+    #pmChatView{min-height:0;overflow:hidden;}
+    .pm-empty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;color:#94a3b8;}
+    .pm-empty-card{max-width:720px;}
+    .pm-empty-icon{font-size:82px;margin-bottom:18px;filter:drop-shadow(0 0 18px rgba(56,189,248,.28));}
+    .pm-empty-title{font-size:18px;font-weight:900;color:#f8fafc;margin-bottom:10px;}
+    .pm-empty-text{font-size:14px;line-height:1.6;color:#94a3b8;}
+    .pm-header{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(10,15,30,.82);flex-shrink:0;}
+    .pm-header .pm-avatar,.pm-header .pm-letter{width:42px;height:42px;}
+    .pm-header-meta{flex:1;min-width:0;}
+    .pm-header-sub{font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-top:3px;}
+    .pm-header-action{border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:#f87171;border-radius:8px;padding:9px 12px;font-size:10px;font-weight:900;cursor:pointer;white-space:nowrap;}
+    .pm-header-action.unblock{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.12);color:#10b981;}
+    .pm-header-members{display:none;flex-wrap:wrap;gap:6px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(8,12,24,.58);flex-shrink:0;max-height:74px;overflow-y:auto;}
+    .pm-member-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(255,255,255,.04);padding:5px 8px;color:#cbd5e1;font-size:10px;font-weight:800;}
+    .pm-member-chip.pending{color:#fbbf24;border-color:rgba(251,191,36,.22);background:rgba(251,191,36,.07);}
+    .pm-member-dot{width:7px;height:7px;border-radius:50%;background:#475569;}
+    .pm-member-dot.on{background:#10b981;box-shadow:0 0 8px #10b981;}
+    .pm-messages{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:18px;display:flex;flex-direction:column;gap:11px;scroll-behavior:smooth;}
+    .pm-msg{display:flex;align-items:flex-end;gap:9px;max-width:74%;}
+    .pm-msg.mine{align-self:flex-end;flex-direction:row-reverse;}
+    .pm-msg.system{align-self:center;max-width:82%;}
+    .pm-msg.system .pm-letter{display:none;}
+    .pm-msg.system .pm-bubble{border-color:rgba(56,189,248,.18);background:rgba(56,189,248,.08);border-radius:999px;padding:8px 14px;}
+    .pm-msg.system .pm-msg-meta{display:none;}
+    .pm-msg.system .pm-text{font-size:11px;color:#93c5fd;text-align:center;}
+    .pm-msg .pm-avatar,.pm-msg .pm-letter{width:30px;height:30px;font-size:12px;}
+    .pm-bubble{border:1px solid rgba(255,255,255,.08);border-radius:12px 12px 12px 4px;background:rgba(255,255,255,.055);padding:10px 12px;min-width:0;}
+    .pm-msg.mine .pm-bubble{border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.12);border-radius:12px 12px 4px 12px;}
+    .pm-msg-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:9px;font-weight:900;color:#64748b;font-family:'JetBrains Mono',monospace;}
+    .pm-msg.mine .pm-msg-meta{justify-content:flex-end;color:#10b981;}
+    .pm-read-status{display:inline-flex;align-items:center;color:#64748b;}
+    .pm-read-status.seen{color:#38bdf8;text-shadow:0 0 8px rgba(56,189,248,.45);}
+    .pm-read-status .material-icons{font-size:14px;line-height:1;}
+    .pm-text{font-size:13px;line-height:1.48;color:#dbeafe;word-break:break-word;white-space:pre-wrap;}
+    .pm-typing{min-height:20px;padding:0 18px 10px;color:#10b981;font-size:10px;font-weight:900;font-family:'JetBrains Mono',monospace;background:rgba(13,18,36,.86);flex-shrink:0;}
+    .pm-typing:empty{display:none;}
+    .pm-form{display:grid;grid-template-columns:1fr auto;gap:10px;padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);background:rgba(10,15,30,.82);flex-shrink:0;}
+    .pm-textarea{resize:none;min-height:44px;max-height:120px;}
+    .pm-send{border:1px solid rgba(16,185,129,.35);background:rgba(16,185,129,.14);color:#10b981;border-radius:8px;min-width:112px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+    .pm-send:hover{background:rgba(16,185,129,.2);}
+    .pm-send:disabled{opacity:.5;cursor:not-allowed;}
+    .pm-badge-modal{display:none;position:fixed;inset:0;background:rgba(8,12,24,.86);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(14px);padding:24px;}
+    .pm-badge-modal-card{width:min(380px,92vw);background:#0d1224;border:2px solid #38bdf8;border-radius:18px;padding:34px 28px;text-align:center;position:relative;box-shadow:0 0 60px rgba(56,189,248,.25);}
+    .pm-badge-modal-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#94a3b8;cursor:pointer;}
+    .pm-badge-modal-icon{font-size:66px;margin-bottom:14px;}
+    .pm-badge-modal-name{font-size:13px;font-weight:900;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
+    .pm-badge-modal-desc{font-size:13px;color:#94a3b8;line-height:1.55;}
+    @media(max-width:980px){.pm-page{padding:16px}.pm-shell{grid-template-columns:1fr;height:auto;min-height:calc(100vh - 100px)}.pm-sidebar{min-height:320px;border-right:0;border-bottom:1px solid rgba(255,255,255,.08)}.pm-chat{min-height:560px}.pm-msg{max-width:92%}}
+    @media(max-width:640px){.pm-tools,.pm-form{grid-template-columns:1fr}.pm-sort{display:none}.pm-send{min-height:42px}.pm-new{height:62px}}
+  </style>
+</head>
+<body>
+<div class="dash-shell">
+  <%- include('partials/sidebar-only') %>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">SOHBETLERIM // <span>OZEL_MESAJLAR</span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <main class="pm-page page-enter">
+      <div class="pm-shell">
+        <aside class="pm-sidebar">
+          <button class="pm-new" onclick="toggleUserPicker()"><span class="material-icons">chat_bubble_outline</span>YENİ SOHBET OLUŞTUR</button>
+          <div class="pm-tools">
+            <button class="pm-sort" id="viewToggleBtn" type="button" onclick="toggleListMode()" title="Liste görünümünü değiştir"><span class="material-icons">sort</span></button>
+            <input id="convSearch" class="pm-input" placeholder="Sohbet ara..." oninput="renderConversations()">
+          </div>
+          <div id="userPicker" class="pm-user-picker">
+            <div class="pm-tabs">
+              <button class="pm-tab active" id="directTab" type="button" onclick="setComposerMode('direct')">BİREBİR</button>
+              <button class="pm-tab" id="groupTab" type="button" onclick="setComposerMode('group')">GRUP</button>
+            </div>
+            <div id="groupCreate" class="pm-group-create">
+              <input id="groupName" class="pm-input" maxlength="50" placeholder="Grup adı">
+              <div class="pm-last" style="margin:0 0 2px;">Gruba davet edilecek kullanıcıları seç.</div>
+            </div>
+            <input id="userSearch" class="pm-input" placeholder="Kullanıcı ara..." oninput="renderUsers()">
+            <div id="userList" class="pm-user-list"></div>
+            <div id="groupActions" class="pm-group-actions" style="display:none;">
+              <button class="pm-mini-btn" type="button" onclick="clearGroupSelection()">Temizle</button>
+              <button class="pm-mini-btn success" type="button" onclick="createGroupConversation()">Grup Oluştur</button>
+            </div>
+          </div>
+          <div id="groupInvites" class="pm-invites"></div>
+          <div id="conversationList" class="pm-conv-list"></div>
+        </aside>
+
+        <section class="pm-chat">
+          <div id="pmEmpty" class="pm-empty">
+            <div class="pm-empty-card">
+              <div class="pm-empty-icon">🛡️</div>
+              <div class="pm-empty-title">Güvenli Platform İçi Mesajlaşma</div>
+              <div class="pm-empty-text">
+                Kullanıcı seçerek özel sohbet başlatabilirsin. Mesajlar sadece konuşmadaki iki kullanıcıya açıktır;
+                dış bağlantı, şifre veya hassas bilgi paylaşmamaya dikkat et.
+              </div>
+            </div>
+          </div>
+
+          <div id="pmChatView" style="display:none;min-height:0;flex:1;flex-direction:column;">
+            <div class="pm-header">
+              <div id="chatHeaderAvatar"></div>
+              <div class="pm-header-meta">
+                <div class="pm-title-row">
+                  <div class="pm-name-line">
+                    <div id="chatHeaderName" class="pm-name">—</div>
+                    <span id="chatHeaderBadges" class="pm-badges"></span>
+                  </div>
+                  <span id="chatHeaderOnline" class="pm-online"></span>
+                </div>
+                <div id="chatHeaderSub" class="pm-header-sub">Özel sohbet</div>
+              </div>
+              <button id="blockUserBtn" class="pm-header-action" type="button" onclick="toggleBlockUser()" style="display:none;">Engelle</button>
+            </div>
+            <div id="chatMembers" class="pm-header-members"></div>
+            <div id="messageList" class="pm-messages"></div>
+            <div id="typingIndicator" class="pm-typing"></div>
+            <form class="pm-form" onsubmit="sendPmMessage(event)">
+              <textarea id="messageInput" class="pm-input pm-textarea" maxlength="1000" rows="1" placeholder="Mesaj yaz..."></textarea>
+              <button class="pm-send" type="submit"><span class="material-icons">send</span>Gönder</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="pmBadgeModal" class="pm-badge-modal" onclick="if(event.target===this)closePmBadgeModal()">
+  <div id="pmBadgeModalCard" class="pm-badge-modal-card">
+    <button class="pm-badge-modal-close" type="button" onclick="closePmBadgeModal()">×</button>
+    <div id="pmBadgeModalIcon" class="pm-badge-modal-icon"></div>
+    <div id="pmBadgeModalName" class="pm-badge-modal-name"></div>
+    <div id="pmBadgeModalDesc" class="pm-badge-modal-desc"></div>
+  </div>
+</div>
+
+<script>
+const CURRENT_USER_ID = '<%= user.id %>';
+let conversations = [];
+let platformUsers = [];
+let activeConversationId = null;
+let activeConversation = null;
+let seenMessageIds = new Set();
+let groupInvites = [];
+let composerMode = 'direct';
+let compactListMode = false;
+const selectedGroupUsers = new Set();
+const pmBadgeStore = [];
+let syncTimer = null;
+let typingPollTimer = null;
+let presenceTimer = null;
+let typingStopTimer = null;
+let lastTypingPulse = 0;
+const conversationTyping = {};
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function userAvatar(u, cls = '') {
+  if (u && u.group) {
+    return `<div class="pm-letter ${cls}"><span class="material-icons" style="font-size:22px;">groups</span></div>`;
+  }
+  const username = u && u.username ? u.username : '?';
+  const letter = escapeHtml(username).charAt(0).toUpperCase();
+  return u && u.avatar
+    ? `<img src="${escapeHtml(u.avatar)}" class="pm-avatar ${cls}" alt="${escapeHtml(username)}" loading="lazy" onerror="this.replaceWith(createLetterAvatar('${letter}','${escapeHtml(cls)}'))">`
+    : `<div class="pm-letter ${cls}">${letter}</div>`;
+}
+
+function createLetterAvatar(letter, cls = '') {
+  const el = document.createElement('div');
+  el.className = `pm-letter ${cls || ''}`;
+  el.textContent = letter || '?';
+  return el;
+}
+
+function registerBadge(badge) {
+  pmBadgeStore.push(badge);
+  return pmBadgeStore.length - 1;
+}
+
+function renderMiniBadges(badges) {
+  if (!Array.isArray(badges) || !badges.length) return '';
+  const shown = badges.slice(0, 3);
+  const extra = badges[0]?.extraCount || 0;
+  return `<span class="pm-badges">${shown.map(b => {
+    const idx = registerBadge(b);
+    const color = escapeHtml(b.color || '#38bdf8');
+    return `<button class="pm-badge-mini" type="button" title="${escapeHtml(b.name)}" style="color:${color}" onclick="event.stopPropagation();showPmBadgeModal(${idx})">${escapeHtml(b.icon || '🏅')}</button>`;
+  }).join('')}${extra ? `<span class="pm-badge-more">+${extra}</span>` : ''}</span>`;
+}
+
+function showPmBadgeModal(idx) {
+  const b = pmBadgeStore[idx];
+  if (!b) return;
+  const modal = document.getElementById('pmBadgeModal');
+  const card = document.getElementById('pmBadgeModalCard');
+  const color = b.color || '#38bdf8';
+  document.getElementById('pmBadgeModalIcon').textContent = b.icon || '🏅';
+  document.getElementById('pmBadgeModalName').textContent = String(b.name || 'Rozet').toUpperCase();
+  document.getElementById('pmBadgeModalName').style.color = color;
+  document.getElementById('pmBadgeModalDesc').textContent = b.desc || 'Özel rozet.';
+  card.style.borderColor = color;
+  card.style.boxShadow = `0 0 60px ${color}55`;
+  modal.style.display = 'flex';
+}
+
+function closePmBadgeModal() {
+  document.getElementById('pmBadgeModal').style.display = 'none';
+}
+
+function fmtTime(value) {
+  if (!value) return '';
+  try { return new Date(value).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' }); }
+  catch(e) { return ''; }
+}
+
+function updatePmNavBadge(count) {
+  document.querySelectorAll('.pm-nav-badge').forEach(badge => {
+    const n = Number(count) || 0;
+    badge.textContent = n > 9 ? '9+' : String(n);
+    badge.classList.toggle('hidden', n === 0);
+  });
+}
+
+function updatePmBadgeFromConversations() {
+  updatePmNavBadge(conversations.reduce((sum, c) => sum + (Number(c.unreadCount) || 0), 0) + groupInvites.length);
+}
+
+function cleanupTyping(conversationId) {
+  const bucket = conversationTyping[conversationId];
+  if (!bucket) return [];
+  const now = Date.now();
+  Object.keys(bucket).forEach(id => {
+    if (!bucket[id] || bucket[id].expiresAt < now) delete bucket[id];
+  });
+  return Object.values(bucket).map(item => item.username);
+}
+
+function setConversationTyping(conversationId, userId, username, typing, ttl = 3500) {
+  if (!conversationId || String(userId) === String(CURRENT_USER_ID)) return;
+  if (!conversationTyping[conversationId]) conversationTyping[conversationId] = {};
+  if (typing) {
+    conversationTyping[conversationId][userId] = { username, expiresAt: Date.now() + ttl };
+    setTimeout(() => {
+      cleanupTyping(conversationId);
+      renderConversations();
+      renderTyping();
+    }, ttl + 120);
+  } else {
+    delete conversationTyping[conversationId][userId];
+  }
+}
+
+function getTypingText(conversationId) {
+  const names = cleanupTyping(conversationId);
+  return names.length ? `${names.slice(0,2).join(', ')} yazıyor...` : '';
+}
+
+function isNearMessageBottom(threshold = 140) {
+  const list = document.getElementById('messageList');
+  if (!list) return true;
+  return list.scrollHeight - list.scrollTop - list.clientHeight < threshold;
+}
+
+function scrollMessages(force = false) {
+  const list = document.getElementById('messageList');
+  if (!list) return;
+  if (!force && !isNearMessageBottom()) return;
+  requestAnimationFrame(() => {
+    list.scrollTop = list.scrollHeight;
+    requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
+  });
+}
+
+function toggleUserPicker() {
+  const picker = document.getElementById('userPicker');
+  picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+  if (picker.style.display === 'block') {
+    document.getElementById('userSearch').focus();
+    renderUsers();
+  }
+}
+
+function toggleListMode() {
+  compactListMode = !compactListMode;
+  document.getElementById('viewToggleBtn')?.classList.toggle('active', compactListMode);
+  renderConversations();
+}
+
+function setComposerMode(mode) {
+  composerMode = mode === 'group' ? 'group' : 'direct';
+  document.getElementById('directTab')?.classList.toggle('active', composerMode === 'direct');
+  document.getElementById('groupTab')?.classList.toggle('active', composerMode === 'group');
+  document.getElementById('groupCreate').style.display = composerMode === 'group' ? 'flex' : 'none';
+  document.getElementById('groupActions').style.display = composerMode === 'group' ? 'grid' : 'none';
+  renderUsers();
+}
+
+function clearGroupSelection() {
+  selectedGroupUsers.clear();
+  renderUsers();
+}
+
+async function loadUsers() {
+  const data = await (await fetch('/api/pm/users')).json();
+  platformUsers = data.success ? data.users : [];
+  renderUsers();
+}
+
+async function loadGroupInvites() {
+  const data = await (await fetch('/api/pm/group-invites')).json().catch(() => ({ success:false, invites:[] }));
+  groupInvites = data.success ? data.invites : [];
+  renderGroupInvites();
+  updatePmBadgeFromConversations();
+}
+
+function renderGroupInvites() {
+  const el = document.getElementById('groupInvites');
+  if (!el) return;
+  if (!groupInvites.length) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="pm-name" style="font-size:12px;color:#10b981;">GRUP DAVETLERİ</div>
+    ${groupInvites.map(inv => `
+      <div class="pm-invite-card">
+        <div class="pm-invite-title">${escapeHtml(inv.name)}</div>
+        <div class="pm-invite-meta">${escapeHtml(inv.ownerUsername)} davet etti · ${inv.memberCount} üye</div>
+        <div class="pm-invite-actions">
+          <button class="pm-mini-btn danger" type="button" onclick="respondGroupInvite('${escapeHtml(inv.id)}','reject')">Reddet</button>
+          <button class="pm-mini-btn success" type="button" onclick="respondGroupInvite('${escapeHtml(inv.id)}','accept')">Kabul Et</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderUsers() {
+  const q = (document.getElementById('userSearch')?.value || '').toLowerCase();
+  const el = document.getElementById('userList');
+  const filtered = platformUsers.filter(u => u.username.toLowerCase().includes(q));
+  el.innerHTML = filtered.length ? filtered.map(u => `
+    <div class="pm-user-row ${selectedGroupUsers.has(String(u.id)) ? 'selected' : ''}" onclick="${composerMode === 'group' ? `toggleGroupUser('${escapeHtml(u.id)}')` : `startConversation('${escapeHtml(u.id)}')`}">
+      ${userAvatar(u)}
+      <div class="pm-main">
+        <div class="pm-title-row">
+          <div class="pm-name-line">
+            <div class="pm-name">${escapeHtml(u.username)}</div>
+            ${renderMiniBadges(u.badges)}
+          </div>
+          ${composerMode === 'group' && selectedGroupUsers.has(String(u.id)) ? '<span class="material-icons" style="font-size:18px;color:#10b981;">check_circle</span>' : `<span class="pm-online ${u.online ? 'on' : ''}"></span>`}
+        </div>
+        <div class="pm-last">${composerMode === 'group' ? 'Davet listesine ekle' : (u.online ? 'Çevrimiçi' : 'Çevrimdışı')}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="pm-last" style="padding:10px;">Kullanıcı bulunamadı.</div>';
+}
+
+function toggleGroupUser(userId) {
+  const id = String(userId);
+  if (selectedGroupUsers.has(id)) selectedGroupUsers.delete(id);
+  else selectedGroupUsers.add(id);
+  renderUsers();
+}
+
+async function loadConversations() {
+  const data = await (await fetch('/api/pm/conversations')).json();
+  conversations = data.success ? data.conversations : [];
+  if (activeConversationId) {
+    activeConversation = conversations.find(c => c.id === activeConversationId) || activeConversation;
+    renderChatHeader();
+  }
+  updatePmBadgeFromConversations();
+  renderConversations();
+}
+
+function renderConversations() {
+  const q = (document.getElementById('convSearch')?.value || '').toLowerCase();
+  const el = document.getElementById('conversationList');
+  const filtered = conversations.filter(c => c.otherUser.username.toLowerCase().includes(q));
+  el.innerHTML = filtered.length ? filtered.map(c => {
+    const typingText = getTypingText(c.id);
+    const last = typingText || (c.lastMessage ? `${String(c.lastMessage.senderId) === String(CURRENT_USER_ID) ? 'Sen: ' : ''}${c.lastMessage.message}` : 'Henüz mesaj yok');
+    const lastHtml = typingText ? escapeHtml(typingText) : last;
+    const meta = c.isGroup ? `${c.memberCount || 1} üye${c.invitedCount ? ` · ${c.invitedCount} bekliyor` : ''}` : fmtTime(c.updatedAt);
+    return `
+      <div class="pm-conv-row ${c.id === activeConversationId ? 'active' : ''} ${typingText ? 'typing' : ''}" onclick="selectConversation('${escapeHtml(c.id)}')">
+        ${userAvatar(c.otherUser)}
+        <div class="pm-main">
+          <div class="pm-title-row">
+            <div class="pm-name-line">
+              <div class="pm-name">${escapeHtml(c.otherUser.username)}</div>
+              ${renderMiniBadges(c.otherUser.badges)}
+            </div>
+            <div class="pm-time">${compactListMode ? '' : meta}</div>
+          </div>
+          <div class="pm-title-row" style="${compactListMode ? 'display:none;' : ''}">
+            <div class="pm-last">${lastHtml}</div>
+            ${c.unreadCount ? `<div class="pm-unread">${c.unreadCount > 9 ? '9+' : c.unreadCount}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('') : '<div class="pm-last" style="padding:16px;">Henüz sohbet yok.</div>';
+}
+
+async function startConversation(targetUserId) {
+  const data = await (await fetch('/api/pm/conversations', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ targetUserId })
+  })).json();
+  if (!data.success) return alert(data.message || 'Sohbet oluşturulamadı.');
+  document.getElementById('userPicker').style.display = 'none';
+  await loadConversations();
+  selectConversation(data.conversationId);
+}
+
+async function createGroupConversation() {
+  const name = document.getElementById('groupName').value.trim();
+  const memberIds = Array.from(selectedGroupUsers);
+  if (name.length < 3) return alert('Grup adı en az 3 karakter olmalı.');
+  if (!memberIds.length) return alert('En az bir kullanıcı seçmelisin.');
+  const data = await (await fetch('/api/pm/groups', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ name, memberIds })
+  })).json();
+  if (!data.success) return alert(data.message || 'Grup oluşturulamadı.');
+  document.getElementById('groupName').value = '';
+  selectedGroupUsers.clear();
+  document.getElementById('userPicker').style.display = 'none';
+  await loadConversations();
+  selectConversation(data.conversationId);
+}
+
+async function respondGroupInvite(conversationId, action) {
+  const data = await (await fetch(`/api/pm/groups/${encodeURIComponent(conversationId)}/respond`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ action })
+  })).json();
+  if (!data.success) return alert(data.message || 'Davet yanıtlanamadı.');
+  await loadGroupInvites();
+  await loadConversations();
+  if (action === 'accept') selectConversation(conversationId);
+}
+
+async function selectConversation(id) {
+  activeConversationId = id;
+  activeConversation = conversations.find(c => c.id === id) || activeConversation;
+  seenMessageIds = new Set();
+  document.getElementById('pmEmpty').style.display = 'none';
+  document.getElementById('pmChatView').style.display = 'flex';
+  renderChatHeader();
+  renderConversations();
+  await syncMessages(true);
+  await loadConversationMembers();
+  markConversationRead();
+  startSync();
+  setTimeout(() => document.getElementById('messageInput')?.focus(), 50);
+}
+
+function renderChatHeader() {
+  if (!activeConversation) return;
+  const u = activeConversation.otherUser;
+  document.getElementById('chatHeaderAvatar').innerHTML = userAvatar(u);
+  document.getElementById('chatHeaderName').textContent = u.username;
+  document.getElementById('chatHeaderBadges').innerHTML = renderMiniBadges(u.badges);
+  document.getElementById('chatHeaderSub').textContent = activeConversation.isGroup ? `${activeConversation.memberCount || 1} üye` : (u.online ? 'Çevrimiçi' : 'Çevrimdışı');
+  document.getElementById('chatHeaderOnline').style.display = activeConversation.isGroup ? 'none' : 'inline-block';
+  document.getElementById('chatHeaderOnline').classList.toggle('on', !!u.online);
+  const blockBtn = document.getElementById('blockUserBtn');
+  if (blockBtn) {
+    blockBtn.style.display = activeConversation.isGroup ? 'none' : 'inline-flex';
+    blockBtn.textContent = activeConversation.blockedByMe ? 'Engeli Kaldır' : 'Engelle';
+    blockBtn.classList.toggle('unblock', !!activeConversation.blockedByMe);
+  }
+  updateComposerState();
+}
+
+function updateComposerState() {
+  const input = document.getElementById('messageInput');
+  const sendBtn = document.querySelector('.pm-send');
+  if (!input || !sendBtn) return;
+  const blockedByMe = activeConversation && !activeConversation.isGroup && activeConversation.blockedByMe;
+  const blockedMe = activeConversation && !activeConversation.isGroup && activeConversation.blockedMe;
+  const blocked = blockedByMe || blockedMe;
+  input.disabled = !!blocked;
+  sendBtn.disabled = !!blocked;
+  if (blockedByMe) input.placeholder = 'Bu kullanıcı engelli. Mesaj göndermek için engeli kaldır.';
+  else if (blockedMe) input.placeholder = 'Bu kullanıcı tarafından engellendiniz.';
+  else input.placeholder = 'Mesaj yaz...';
+}
+
+async function toggleBlockUser() {
+  if (!activeConversation || activeConversation.isGroup) return;
+  const targetUserId = activeConversation.otherUser.id;
+  const endpoint = activeConversation.blockedByMe ? '/api/pm/unblock' : '/api/pm/block';
+  const data = await (await fetch(endpoint, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ targetUserId })
+  })).json();
+  if (!data.success) return alert(data.message || 'İşlem tamamlanamadı.');
+  activeConversation.blockedByMe = !!data.blocked;
+  conversations = conversations.map(c => c.id === activeConversation.id ? { ...c, blockedByMe: !!data.blocked } : c);
+  renderChatHeader();
+  appendLocalSystemNotice(data.message);
+}
+
+async function loadConversationMembers() {
+  const el = document.getElementById('chatMembers');
+  if (!el || !activeConversationId || !activeConversation?.isGroup) {
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+    return;
+  }
+  const data = await (await fetch(`/api/pm/conversations/${encodeURIComponent(activeConversationId)}/members`)).json().catch(() => ({ success:false }));
+  if (!data.success) return;
+  el.style.display = 'flex';
+  el.innerHTML = [
+    ...(data.members || []).map(m => `
+      <span class="pm-member-chip">
+        <span class="pm-member-dot ${m.online ? 'on' : ''}"></span>
+        ${escapeHtml(m.username)}${m.owner ? ' · kurucu' : ''}${renderMiniBadges(m.badges)}
+      </span>
+    `),
+    ...(data.invited || []).map(m => `<span class="pm-member-chip pending">${escapeHtml(m.username)} · bekliyor</span>`)
+  ].join('');
+}
+
+function renderMessage(m) {
+  if (m.type === 'system') {
+    return `
+      <div class="pm-msg system" data-message-id="${escapeHtml(m.id)}" data-created-at="${escapeHtml(m.createdAt)}">
+        <div class="pm-letter">S</div>
+        <div class="pm-bubble">
+          <div class="pm-msg-meta"></div>
+          <div class="pm-text">${m.message || ''}</div>
+        </div>
+      </div>
+    `;
+  }
+  const mine = m.mine || String(m.senderId) === String(CURRENT_USER_ID);
+  const sender = { username: m.senderUsername, avatar: m.senderAvatar };
+  const senderBadges = renderMiniBadges(m.senderBadges);
+  const readStatus = mine
+    ? `<span class="pm-read-status ${m.readByOther ? 'seen' : ''}" title="${m.readByOther ? 'Okundu' : 'İletildi'}"><span class="material-icons">${m.readByOther ? 'done_all' : 'done'}</span></span>`
+    : '';
+  return `
+    <div class="pm-msg ${mine ? 'mine' : ''}" data-message-id="${escapeHtml(m.id)}" data-created-at="${escapeHtml(m.createdAt)}">
+      ${userAvatar(sender)}
+      <div class="pm-bubble">
+        <div class="pm-msg-meta"><span>${mine ? 'Sen' : escapeHtml(m.senderUsername)}</span>${senderBadges}<span>${fmtTime(m.createdAt)}</span>${readStatus}</div>
+        <div class="pm-text">${m.message || ''}</div>
+      </div>
+    </div>
+  `;
+}
+
+function setMessageReadVisual(messageId, read) {
+  const row = document.querySelector(`.pm-msg[data-message-id="${CSS.escape(String(messageId))}"]`);
+  if (!row) return;
+  const status = row.querySelector('.pm-read-status');
+  if (!status) return;
+  status.classList.toggle('seen', !!read);
+  status.title = read ? 'Okundu' : 'İletildi';
+  const icon = status.querySelector('.material-icons');
+  if (icon) icon.textContent = read ? 'done_all' : 'done';
+}
+
+function applyReadStates(messages) {
+  (messages || []).forEach(m => {
+    if (m.mine || String(m.senderId) === String(CURRENT_USER_ID)) {
+      setMessageReadVisual(m.id, !!m.readByOther);
+    }
+  });
+}
+
+function markMessagesReadByOther(conversationId, readAt) {
+  if (!activeConversationId || conversationId !== activeConversationId) return;
+  const readTime = new Date(readAt).getTime();
+  document.querySelectorAll('.pm-msg.mine').forEach(row => {
+    const created = new Date(row.dataset.createdAt || 0).getTime();
+    if (created <= readTime) setMessageReadVisual(row.dataset.messageId, true);
+  });
+}
+
+function appendMessage(m, options = {}) {
+  if (!m || !m.id || seenMessageIds.has(m.id)) return;
+  const wasNearBottom = isNearMessageBottom();
+  seenMessageIds.add(m.id);
+  const list = document.getElementById('messageList');
+  const empty = list.querySelector('.pm-empty');
+  if (empty) empty.remove();
+  list.insertAdjacentHTML('beforeend', renderMessage(m));
+  if (options.forceScroll || wasNearBottom) scrollMessages(true);
+}
+
+function appendLocalSystemNotice(message) {
+  appendMessage({
+    id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    type: 'system',
+    message: escapeHtml(message || ''),
+    createdAt: new Date().toISOString()
+  }, { forceScroll: true });
+}
+
+async function syncMessages(clear = false) {
+  if (!activeConversationId) return;
+  const data = await (await fetch(`/api/pm/conversations/${encodeURIComponent(activeConversationId)}/messages`)).json();
+  if (!data.success) return;
+  const list = document.getElementById('messageList');
+  if (clear) {
+    list.innerHTML = '';
+    seenMessageIds.clear();
+  }
+  if (!data.messages.length && !seenMessageIds.size) {
+    list.innerHTML = '<div class="pm-empty" style="height:auto;padding:26px;">Henüz mesaj yok.</div>';
+  } else {
+    data.messages.forEach(m => appendMessage(m, { forceScroll: clear }));
+    applyReadStates(data.messages);
+  }
+  if (clear) scrollMessages(true);
+}
+
+function startSync() {
+  if (syncTimer) clearInterval(syncTimer);
+  if (typingPollTimer) clearInterval(typingPollTimer);
+  if (presenceTimer) clearInterval(presenceTimer);
+  syncTimer = setInterval(() => syncMessages(false), 2500);
+  typingPollTimer = setInterval(pollTyping, 1000);
+  presenceTimer = setInterval(() => {
+    loadConversations();
+    loadUsers();
+    loadGroupInvites();
+    loadConversationMembers();
+  }, 8000);
+}
+
+async function markConversationRead() {
+  if (!activeConversationId) return;
+  await fetch(`/api/pm/conversations/${encodeURIComponent(activeConversationId)}/read`, { method:'POST' }).catch(() => {});
+  await loadConversations();
+  updatePmBadgeFromConversations();
+}
+
+async function sendPmMessage(event) {
+  event.preventDefault();
+  if (!activeConversationId) return;
+  const input = document.getElementById('messageInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (activeConversation && !activeConversation.isGroup && (activeConversation.blockedByMe || activeConversation.blockedMe)) {
+    appendLocalSystemNotice(activeConversation.blockedByMe ? 'Bu kullanıcı engelli. Mesaj göndermek için engeli kaldırın.' : 'Bu kullanıcı tarafından engellendiniz. Mesaj gönderilemedi.');
+    updateComposerState();
+    return;
+  }
+  input.value = '';
+  sendTyping(false);
+  const data = await (await fetch(`/api/pm/conversations/${encodeURIComponent(activeConversationId)}/messages`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ message:text })
+  })).json();
+  if (data.success) {
+    appendMessage(data.message, { forceScroll: true });
+    loadConversations();
+  } else {
+    appendLocalSystemNotice(data.message || 'Mesaj gönderilemedi.');
+    if (data.code === 'BLOCKED_BY_ME' && activeConversation) activeConversation.blockedByMe = true;
+    if (data.code === 'BLOCKED_BY_OTHER' && activeConversation) activeConversation.blockedMe = true;
+    updateComposerState();
+  }
+}
+
+function renderTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (!el || !activeConversationId) return;
+  const text = getTypingText(activeConversationId);
+  el.textContent = text;
+  const sub = document.getElementById('chatHeaderSub');
+  if (sub && activeConversation) {
+    sub.textContent = text || (activeConversation.isGroup ? `${activeConversation.memberCount || 1} üye` : (activeConversation.otherUser.online ? 'Çevrimiçi' : 'Çevrimdışı'));
+  }
+  scrollMessages(false);
+}
+
+function handleTypingEvent(data) {
+  if (!data || String(data.userId) === String(CURRENT_USER_ID)) return;
+  setConversationTyping(data.conversationId, data.userId, data.username, data.typing, 3500);
+  renderConversations();
+  renderTyping();
+}
+
+async function pollTyping() {
+  if (!activeConversationId) return;
+  const data = await (await fetch(`/api/pm/conversations/${encodeURIComponent(activeConversationId)}/typing`)).json().catch(() => ({ success:false }));
+  if (!data.success) return;
+  conversationTyping[activeConversationId] = {};
+  (data.typing || []).forEach(t => {
+    setConversationTyping(activeConversationId, t.userId, t.username, true, 1800);
+  });
+  renderConversations();
+  renderTyping();
+}
+
+function sendTyping(typing) {
+  if (!activeConversationId) return;
+  fetch(`/api/pm/conversations/${encodeURIComponent(activeConversationId)}/typing`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ typing })
+  }).catch(() => {});
+}
+
+function pulseTyping() {
+  const now = Date.now();
+  if (now - lastTypingPulse > 1300) {
+    lastTypingPulse = now;
+    sendTyping(true);
+  }
+  if (typingStopTimer) clearTimeout(typingStopTimer);
+  typingStopTimer = setTimeout(() => sendTyping(false), 1200);
+}
+
+function handlePmMessage(eventData) {
+  const msg = eventData.message;
+  if (!msg) return;
+  if (eventData.conversationId === activeConversationId) {
+    const mine = String(msg.senderId) === String(CURRENT_USER_ID);
+    appendMessage({ ...msg, mine }, { forceScroll: mine });
+    if (!mine) markConversationRead();
+  } else {
+    loadConversations();
+  }
+}
+
+function handlePmRead(eventData) {
+  if (!eventData || String(eventData.readerId) === String(CURRENT_USER_ID)) return;
+  markMessagesReadByOther(eventData.conversationId, eventData.readAt);
+  loadConversations();
+}
+
+function handleGroupUpdate(eventData) {
+  if (eventData?.message && eventData.conversationId === activeConversationId) {
+    appendMessage(eventData.message, { forceScroll: false });
+    loadConversationMembers();
+    markConversationRead();
+  }
+  loadGroupInvites();
+  loadConversations();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadUsers();
+  loadConversations();
+  loadGroupInvites();
+  presenceTimer = setInterval(() => {
+    loadConversations();
+    loadUsers();
+    loadGroupInvites();
+    loadConversationMembers();
+  }, 8000);
+  document.getElementById('messageInput').addEventListener('input', pulseTyping);
+  document.getElementById('messageInput').addEventListener('keydown', e => {
+    pulseTyping();
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendPmMessage(e);
+    }
+  });
+
+  const bell = document.getElementById('notifBellBtn');
+  const drop = document.getElementById('notifDropdown');
+  if(bell && drop) {
+    loadNotificationData();
+    bell.addEventListener('click', e => { e.stopPropagation(); const o = drop.classList.toggle('active'); if(o) markAllAsRead(); });
+    document.addEventListener('click', e => { if(!bell.contains(e.target)&&!drop.contains(e.target)) drop.classList.remove('active'); });
+    document.getElementById('notifClearBtn').addEventListener('click', clearAllNotifications);
+  }
+
+  let es=null,r=0;
+  function conn() {
+    if(es) es.close();
+    es = new EventSource('/api/notifications/stream');
+    es.onmessage = e => {
+      try {
+        const n = JSON.parse(e.data);
+        if (n.type === 'pm_message') return handlePmMessage(n);
+        if (n.type === 'pm_typing') return handleTypingEvent(n);
+        if (n.type === 'pm_read') return handlePmRead(n);
+        if (n.type === 'pm_group_invite' || n.type === 'pm_group_update') return handleGroupUpdate(n);
+        processNotification(n);
+      } catch(err) {}
+    };
+    es.onerror = () => { es.close(); if(r++<3) setTimeout(conn,5000); };
+    es.addEventListener('ping', () => { r=0; });
+  }
+  conn();
+});
+
+window.addEventListener('focus', () => {
+  loadConversations();
+  loadGroupInvites();
+  syncMessages(false);
+});
+
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

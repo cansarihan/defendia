@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Laboratuvar</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .hidden { display: none !important; }
+    .lab-layout { display:flex; flex:1; overflow:hidden; }
+    .lab-main { flex:1; overflow-y:auto; padding:20px; min-width:0; }
+    .lab-side { width:300px; min-width:300px; border-left:1px solid rgba(255,255,255,0.06); padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+    .lab-page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:16px; }
+    .lab-kicker { font-size:9px; font-weight:800; color:#475569; letter-spacing:2.4px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:6px; }
+    .lab-heading { font-size:24px; line-height:1.1; font-weight:900; color:#f8fafc; font-family:'JetBrains Mono',monospace; letter-spacing:1px; }
+    .lab-head-meta { font-size:10px; color:#64748b; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+    .lab-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+    .lab-summary-card { min-height:68px; background:rgba(17,24,39,0.72); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:13px 14px; display:flex; flex-direction:column; justify-content:center; }
+    .lab-summary-value { font-size:18px; line-height:1; font-weight:900; color:#f8fafc; font-family:'JetBrains Mono',monospace; }
+    .lab-summary-label { margin-top:7px; font-size:8px; font-weight:800; color:#475569; letter-spacing:1.5px; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+    .lab-filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; padding:10px; background:rgba(17,24,39,0.48); border:1px solid rgba(255,255,255,0.05); border-radius:10px; }
+    .filter-pill { padding:7px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); color:#64748b; font-size:10px; font-weight:800; cursor:pointer; transition:all 0.2s; font-family:'JetBrains Mono',monospace; letter-spacing:1px; }
+    .filter-pill:hover { color:#cbd5e1; border-color:rgba(255,255,255,0.18); background:rgba(255,255,255,0.04); }
+    .filter-pill.active { color:#38bdf8; border-color:rgba(56,189,248,0.5); background:rgba(56,189,248,0.08); box-shadow:0 0 12px rgba(56,189,248,0.08); }
+    .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 12px; }
+    .lab-card { background: rgba(17,24,39,0.72); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 15px; position: relative; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s, background 0.2s; display: flex; flex-direction: column; min-height: 178px; }
+    .lab-card:hover { border-color: rgba(56,189,248,0.36); transform: translateY(-2px); background: rgba(17,24,39,0.86); box-shadow: 0 12px 28px rgba(0,0,0,0.24); }
+    .lab-card.solved { border-color: rgba(16,185,129,0.26); background: rgba(16,185,129,0.045); }
+    .lab-card.solved:hover { border-color: rgba(16,185,129,0.5); box-shadow: 0 12px 28px rgba(0,0,0,0.24); }
+    .lab-card.blur-focus { opacity: 0.4; pointer-events: none; }
+    .diff-badge { font-size: 8px; font-weight: 900; padding: 3px 7px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; border: 1px solid; white-space: nowrap; text-transform:uppercase; }
+    .diff-kolay { color: #10b981; border-color: #10b981; }
+    .diff-orta  { color: #fbbf24; border-color: #fbbf24; }
+    .diff-zor   { color: #ef4444; border-color: #ef4444; }
+    .lab-card-top { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+    .lab-card.solved .lab-card-top { padding-right: 86px; }
+    .lab-pts { font-size: 10px; color: #64748b; font-family: 'JetBrains Mono', monospace; margin-left: auto; white-space: nowrap; flex-shrink: 0; }
+    .solved-stamp { position:absolute; top:12px; right:12px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.45); color:#10b981; font-size:8px; font-weight:900; padding:3px 7px; border-radius:4px; font-family:'JetBrains Mono',monospace; letter-spacing:1px; z-index:1; }
+    .lab-title { font-size:14px; font-weight:800; color:#f8fafc; margin-bottom:7px; line-height:1.25; }
+    .lab-hint { font-size:11px; color:#64748b; line-height:1.5; flex:1; margin-bottom:0; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .solved-row { display:flex; align-items:center; gap:6px; font-size:10px; color:#10b981; font-family:'JetBrains Mono',monospace; font-weight:800; margin-top:12px; }
+    .prog-bar-bg { height: 3px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin: 8px 0; }
+    .prog-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); border-radius: 3px; transition: width 0.5s; }
+    .flag-row { display: flex; gap: 6px; margin-top: 10px; }
+    .flag-input { flex: 1; min-width:0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 6px; padding: 8px 10px; font-size: 11px; color: #cbd5e1; font-family: 'JetBrains Mono', monospace; outline: none; }
+    .flag-input:focus { border-color: rgba(56,189,248,0.45); background: rgba(56,189,248,0.04); }
+    .start-btn { width: 100%; padding: 9px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); border-radius: 6px; color: #38bdf8; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; transition: all 0.2s; margin-top: 10px; }
+    .start-btn:hover { background: rgba(56,189,248,0.2); box-shadow: 0 0 12px rgba(56,189,248,0.2); }
+    .flag-btn { padding: 8px 12px; background: #10b981; border: none; border-radius: 6px; color: #07111f; font-size: 10px; font-weight: 900; cursor: pointer; white-space: nowrap; font-family:'JetBrains Mono',monospace; letter-spacing:.7px; }
+    .flag-btn:hover { background:#34d399; }
+    .lab-side-card { background:rgba(17,24,39,0.76); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:15px; backdrop-filter:blur(6px); }
+    .lab-side-title { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:9px; font-weight:900; color:#475569; letter-spacing:2px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-bottom:12px; }
+    .lab-progress-big { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+    .lab-progress-num { font-size:34px; font-weight:900; color:#38bdf8; font-family:'JetBrains Mono',monospace; line-height:1; text-shadow:0 0 14px rgba(56,189,248,0.35); }
+    .lab-progress-sub { font-size:9px; color:#64748b; font-family:'JetBrains Mono',monospace; text-align:right; line-height:1.5; }
+    .lab-progress-bar { height:5px; background:rgba(255,255,255,0.05); border-radius:5px; overflow:hidden; margin:12px 0 8px; }
+    .lab-progress-fill { height:100%; background:linear-gradient(90deg,#10b981,#38bdf8); border-radius:5px; box-shadow:0 0 8px rgba(56,189,248,0.35); }
+    .lab-side-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .lab-side-metric { background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.045); border-radius:8px; padding:10px; }
+    .lab-side-metric strong { display:block; font-size:14px; color:#f8fafc; font-family:'JetBrains Mono',monospace; line-height:1; }
+    .lab-side-metric span { display:block; margin-top:6px; font-size:8px; color:#475569; font-weight:800; letter-spacing:1px; font-family:'JetBrains Mono',monospace; }
+    .lab-list-row { display:flex; align-items:center; gap:9px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); color:inherit; }
+    .lab-list-row:last-child { border-bottom:none; padding-bottom:0; }
+    .lab-list-dot { width:7px; height:7px; border-radius:50%; background:#38bdf8; box-shadow:0 0 8px rgba(56,189,248,0.45); flex-shrink:0; }
+    .lab-list-dot.done { background:#10b981; box-shadow:0 0 8px rgba(16,185,129,0.45); }
+    .lab-list-main { flex:1; min-width:0; }
+    .lab-list-title { display:block; font-size:11px; font-weight:800; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lab-list-sub { display:block; margin-top:3px; font-size:9px; color:#475569; font-family:'JetBrains Mono',monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lab-list-score { font-size:10px; font-weight:900; color:#38bdf8; font-family:'JetBrains Mono',monospace; flex-shrink:0; }
+    .lab-break-row { margin-bottom:11px; }
+    .lab-break-head { display:flex; justify-content:space-between; gap:10px; margin-bottom:5px; font-size:10px; font-weight:800; color:#64748b; font-family:'JetBrains Mono',monospace; }
+    .lab-break-bar { height:4px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+    .lab-break-fill { height:100%; border-radius:4px; background:#38bdf8; }
+    .lab-empty { padding:10px 0 2px; text-align:center; font-size:11px; color:#334155; font-family:'JetBrains Mono',monospace; }
+    .toast-fixed { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 13px; z-index: 9999; transition: transform 0.3s; pointer-events: none; border-left: 3px solid #38bdf8; }
+    .machine-box { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; padding: 14px; text-align: center; }
+    .machine-ip { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #10b981; cursor: pointer; }
+    .machine-timer { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569; margin-top: 4px; }
+    @media (max-width:1180px) { .lab-layout { flex-direction:column; overflow-y:auto; } .lab-main { overflow:visible; } .lab-side { width:auto; min-width:0; border-left:none; border-top:1px solid rgba(255,255,255,0.06); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:820px) { .lab-page-head { align-items:flex-start; flex-direction:column; } .lab-summary-grid, .lab-side { grid-template-columns:1fr; } .lab-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<%
+  const labList = Object.values(labs || {});
+  const solvedList = user.solved || [];
+  const solvedSet = new Set(solvedList);
+  let totalLabs = labList.length;
+  let solvedLabs = labList.filter(l => solvedSet.has(l.id)).length;
+  let labProgress = totalLabs === 0 ? 0 : Math.round((solvedLabs / totalLabs) * 100);
+  let totalLabPoints = labList.reduce((sum, l) => sum + (l.points || 0), 0);
+  let solvedLabPoints = labList.filter(l => solvedSet.has(l.id)).reduce((sum, l) => sum + (l.points || 0), 0);
+  let remainingLabPoints = Math.max(0, totalLabPoints - solvedLabPoints);
+  const difficultyOrder = { Kolay: 1, Orta: 2, Zor: 3 };
+  const difficultyStats = ['Kolay', 'Orta', 'Zor'].map(label => {
+    const items = labList.filter(l => (l.difficulty || 'Kolay') === label);
+    return { label, total: items.length, solved: items.filter(l => solvedSet.has(l.id)).length };
+  });
+  const nextLabs = labList
+    .filter(l => !solvedSet.has(l.id))
+    .sort((a, b) => (difficultyOrder[a.difficulty || 'Kolay'] || 9) - (difficultyOrder[b.difficulty || 'Kolay'] || 9) || (a.points || 0) - (b.points || 0))
+    .slice(0, 4);
+  const recentLabSolves = Object.entries(user.solvedDates || {})
+    .map(([id, solvedAt]) => labs[id] ? { ...labs[id], solvedAt } : null)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
+    .slice(0, 4);
+  const activeLab = user.active_vmid_id && labs[user.active_vmid_id] ? labs[user.active_vmid_id] : null;
+%>
+
+<div id="toast" class="toast-fixed"></div>
+
+<!-- ══ BOOT MODAL ══ -->
+<div class="boot-overlay" id="bootOverlay">
+  <div class="boot-modal">
+    <div class="boot-icon"><span class="material-icons">dns</span></div>
+    <div class="boot-title">PROXMOX VE</div>
+    <div class="boot-subtitle" id="bootSubtitle">Makine başlatılıyor...</div>
+    <div class="boot-progress-bg">
+      <div class="boot-progress-fill" id="bootProgressFill"></div>
+    </div>
+    <div class="boot-steps">
+      <div class="boot-step" id="bstep-1">
+        <div class="boot-step-icon">⚙</div>
+        <div class="boot-step-text">VM klonlanıyor</div>
+        <div class="boot-step-status" id="bstatus-1">BEKLIYOR</div>
+      </div>
+      <div class="boot-step" id="bstep-2">
+        <div class="boot-step-icon">🌐</div>
+        <div class="boot-step-text">Ağ yapılandırılıyor</div>
+        <div class="boot-step-status" id="bstatus-2">BEKLIYOR</div>
+      </div>
+      <div class="boot-step" id="bstep-3">
+        <div class="boot-step-icon">▶</div>
+        <div class="boot-step-text">Makine başlatılıyor</div>
+        <div class="boot-step-status" id="bstatus-3">BEKLIYOR</div>
+      </div>
+      <div class="boot-step" id="bstep-4">
+        <div class="boot-step-icon">📡</div>
+        <div class="boot-step-text">IP adresi bekleniyor</div>
+        <div class="boot-step-status" id="bstatus-4">BEKLIYOR</div>
+      </div>
+    </div>
+    <div class="boot-ip-result" id="bootIpResult">
+      <div class="boot-ip-label">HEDEF_IP_ADRESİ</div>
+      <div class="boot-ip-value" id="bootIpValue" onclick="copyBootIp()">—</div>
+      <div style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:4px;">Kopyalamak için tıkla</div>
+    </div>
+    <button class="boot-close-btn" id="bootCloseBtn" onclick="closeBootModal()">
+      MAKİNE HAZIR — DEVAM ET
+    </button>
+  </div>
+</div>
+
+<div class="dash-shell">
+  <%- include('partials/sidebar-only') %>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">ALTYAPI // <span>LAB_MAKİNELERİ</span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <div class="dash-content-area lab-layout">
+      <!-- Sol: Lab Grid -->
+      <div class="lab-main page-enter">
+        <div class="lab-page-head">
+          <div>
+            <div class="lab-kicker">LABORATUVAR_MAKİNELERİ // HEDEF HAVUZU</div>
+            <div class="lab-heading">Laboratuvar</div>
+          </div>
+          <div class="lab-head-meta"><%= totalLabs %> makine · <%= solvedLabs %> ele geçirildi · <%= remainingLabPoints %> puan kaldı</div>
+        </div>
+
+        <div class="lab-summary-grid">
+          <div class="lab-summary-card">
+            <div class="lab-summary-value"><%= labProgress %>%</div>
+            <div class="lab-summary-label">GENEL İLERLEME</div>
+          </div>
+          <div class="lab-summary-card">
+            <div class="lab-summary-value"><%= solvedLabs %>/<%= totalLabs %></div>
+            <div class="lab-summary-label">TAMAMLANAN LAB</div>
+          </div>
+          <div class="lab-summary-card">
+            <div class="lab-summary-value"><%= solvedLabPoints %></div>
+            <div class="lab-summary-label">TOPLANAN PUAN</div>
+          </div>
+          <div class="lab-summary-card">
+            <div class="lab-summary-value"><%= activeLab ? '1' : '0' %></div>
+            <div class="lab-summary-label">AKTİF MAKİNE</div>
+          </div>
+        </div>
+
+        <div class="lab-filter-bar">
+          <button class="filter-pill active" data-filter="status" data-value="all">Tümü</button>
+          <button class="filter-pill" data-filter="status" data-value="active">Aktif</button>
+          <button class="filter-pill" data-filter="status" data-value="pending">Bekleyen</button>
+          <button class="filter-pill" data-filter="status" data-value="solved">Tamamlandı</button>
+          <div style="width:1px;background:rgba(255,255,255,0.08);margin:0 4px;"></div>
+          <button class="filter-pill active" data-filter="difficulty" data-value="all">Tüm Zorluk</button>
+          <button class="filter-pill" data-filter="difficulty" data-value="Kolay" style="color:#10b981;border-color:rgba(16,185,129,0.3);">Kolay</button>
+          <button class="filter-pill" data-filter="difficulty" data-value="Orta" style="color:#fbbf24;border-color:rgba(251,191,36,0.3);">Orta</button>
+          <button class="filter-pill" data-filter="difficulty" data-value="Zor" style="color:#ef4444;border-color:rgba(239,68,68,0.3);">Zor</button>
+        </div>
+
+        <div class="lab-grid">
+          <% labList.forEach((lab, index) => {
+            const isSolved = solvedSet.has(lab.id);
+            const isThisActive = user.active_vmid && user.active_vmid_id == lab.id;
+            const otherActive = user.active_vmid && user.active_vmid_id != lab.id;
+            const diff = (lab.difficulty || 'Kolay').toLowerCase();
+            const diffClass = diff === 'zor' ? 'diff-zor' : (diff === 'orta' ? 'diff-orta' : 'diff-kolay');
+            const status = isSolved ? 'solved' : (isThisActive ? 'active' : 'pending');
+          %>
+          <div class="lab-card <%= isSolved?'solved':'' %> <%= otherActive?'blur-focus':'' %> fade-in-up stagger-<%= (index%5)+1 %>" data-status="<%= status %>" data-difficulty="<%= lab.difficulty || 'Kolay' %>">
+            <% if(isSolved) { %><span class="solved-stamp">TAMAMLANDI</span><% } %>
+            <div class="lab-card-top">
+              <span class="diff-badge <%= diffClass %>"><%= lab.difficulty || 'Kolay' %></span>
+              <span class="lab-pts"><%= lab.points %> PUAN</span>
+            </div>
+            <div class="lab-title"><%= lab.title %></div>
+            <div class="lab-hint"><%= lab.hint %></div>
+
+            <% if(isThisActive) { %>
+              <div id="statusContainer-<%= lab.id %>" style="margin-top:12px;">
+                <% if(!user.ip_address) { %>
+                  <div class="prog-bar-bg"><div class="prog-bar-fill" id="innerBar-<%= lab.id %>" style="width:15%;"></div></div>
+                  <div style="font-size:10px;color:#38bdf8;font-family:'JetBrains Mono',monospace;text-align:center;">SİSTEM_HAZIRLANIYOR...</div>
+                <% } else { %>
+                  <div class="flag-row">
+                    <input type="text" id="flagInput-<%= lab.id %>" class="flag-input" placeholder="bluenetwork{...}" onkeydown="if(event.key==='Enter')submitFlag('<%= lab.id %>')">
+                    <button onclick="submitFlag('<%= lab.id %>')" class="flag-btn">GÖNDER</button>
+                  </div>
+                <% } %>
+              </div>
+            <% } else if(!user.active_vmid && !isSolved) { %>
+              <button onclick="deployLab('<%= lab.id %>')" class="start-btn">
+                <span class="material-icons" style="font-size:13px;vertical-align:middle;">play_arrow</span>
+                MAKİNEYİ BAŞLAT
+              </button>
+            <% } else if(isSolved) { %>
+              <div class="solved-row">
+                <span class="material-icons" style="font-size:14px;">check_circle</span>LAB TAMAMLANDI
+              </div>
+            <% } %>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Sağ Sidebar — genişletilmiş -->
+      <div class="lab-side">
+
+        <!-- Genel İstatistik -->
+        <div class="lab-side-card">
+          <div class="lab-side-title">
+            <span>LAB İSTATİSTİĞİ</span>
+            <span class="material-icons" style="font-size:14px;color:#38bdf8;">query_stats</span>
+          </div>
+          <div class="lab-progress-big">
+            <div class="lab-progress-num"><%= labProgress %>%</div>
+            <div class="lab-progress-sub">
+              <%= solvedLabs %>/<%= totalLabs %> makine<br>
+              <%= solvedLabPoints %>/<%= totalLabPoints %> puan
+            </div>
+          </div>
+          <div class="lab-progress-bar">
+            <div class="lab-progress-fill" style="width:<%= labProgress %>%;"></div>
+          </div>
+          <div class="lab-side-grid">
+            <div class="lab-side-metric"><strong><%= remainingLabPoints %></strong><span>KALAN PUAN</span></div>
+            <div class="lab-side-metric"><strong><%= activeLab ? activeLab.id : '—' %></strong><span>AKTİF VMID</span></div>
+          </div>
+        </div>
+
+        <!-- Operatör + Lab İlerleme -->
+        <div class="lab-side-card">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">OPERATÖR</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <a href="/profile/<%= user.username %>" style="flex-shrink:0;">
+              <% if(user.avatar) { %>
+                <img src="<%= user.avatar %>" style="width:40px;height:40px;border-radius:50%;border:2px solid #10b981;object-fit:cover;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+              <% } else { %>
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,185,129,0.15);border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#10b981;"><%= user.username[0].toUpperCase() %></div>
+              <% } %>
+            </a>
+            <div>
+              <a href="/profile/<%= user.username %>" style="font-size:13px;font-weight:700;color:white;font-family:'JetBrains Mono',monospace;text-decoration:none;display:block;" onmouseover="this.style.color='#38bdf8'" onmouseout="this.style.color='white'"><%= user.username %></a>
+              <div style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:1px;" id="myRank">#--</div>
+            </div>
+          </div>
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:5px;">LAB İLERLEMESİ</div>
+          <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;margin-bottom:5px;">
+            <div style="height:100%;background:linear-gradient(90deg,#10b981,#38bdf8);border-radius:4px;width:<%= labProgress %>%;box-shadow:0 0 8px rgba(56,189,248,0.3);"></div>
+          </div>
+          <div style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;"><%= solvedLabs %>/<%= totalLabs %> tamamlandı</div>
+        </div>
+
+        <!-- Aktif Makine -->
+        <div class="lab-side-card">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:10px;">AKTİF MAKİNE</div>
+          <div id="noMachine" class="<%= user.active_vmid ? 'hidden' : '' %>" style="font-size:11px;color:#334155;font-family:'JetBrains Mono',monospace;text-align:center;padding:10px 0;">AKTİF_MAKİNE_YOK</div>
+          <div id="activeInfo" class="<%= user.active_vmid ? '' : 'hidden' %>">
+            <div class="machine-box">
+              <div style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">HEDEF IP</div>
+              <div class="machine-ip" id="sideIp" onclick="copyIp()"><%= user.ip_address || 'ÇÖZÜMLENİYOR...' %></div>
+              <div class="machine-timer" id="sideTimer">--:--</div>
+            </div>
+            <button onclick="stopLab()" style="width:100%;margin-top:8px;padding:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#ef4444;font-size:10px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">SONLANDIR</button>
+          </div>
+        </div>
+
+        <!-- Zorluk Dağılımı -->
+        <div class="lab-side-card">
+          <div class="lab-side-title">
+            <span>ZORLUK DAĞILIMI</span>
+            <span class="material-icons" style="font-size:14px;color:#fbbf24;">stacked_bar_chart</span>
+          </div>
+          <% difficultyStats.forEach(stat => {
+            const pct = stat.total ? Math.round((stat.solved / stat.total) * 100) : 0;
+            const color = stat.label === 'Kolay' ? '#10b981' : (stat.label === 'Orta' ? '#fbbf24' : '#ef4444');
+          %>
+            <div class="lab-break-row">
+              <div class="lab-break-head">
+                <span><%= stat.label.toUpperCase() %></span>
+                <span><%= stat.solved %>/<%= stat.total %> · <%= pct %>%</span>
+              </div>
+              <div class="lab-break-bar"><div class="lab-break-fill" style="width:<%= pct %>%;background:<%= color %>;box-shadow:0 0 8px <%= color %>55;"></div></div>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Sıradaki Hedefler -->
+        <div class="lab-side-card">
+          <div class="lab-side-title">
+            <span>SIRADAKİ HEDEFLER</span>
+            <span class="material-icons" style="font-size:14px;color:#38bdf8;">flag</span>
+          </div>
+          <% if(nextLabs.length === 0) { %>
+            <div class="lab-empty">Tüm laboratuvarlar tamamlandı</div>
+          <% } else { %>
+            <% nextLabs.forEach(item => { %>
+              <div class="lab-list-row">
+                <span class="lab-list-dot"></span>
+                <span class="lab-list-main">
+                  <span class="lab-list-title"><%= item.title %></span>
+                  <span class="lab-list-sub"><%= item.difficulty || 'Kolay' %> · VMID <%= item.id %></span>
+                </span>
+                <span class="lab-list-score"><%= item.points %>p</span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <!-- Son Çözümler -->
+        <div class="lab-side-card">
+          <div class="lab-side-title">
+            <span>SON ÇÖZÜMLER</span>
+            <span class="material-icons" style="font-size:14px;color:#10b981;">history</span>
+          </div>
+          <% if(recentLabSolves.length === 0) { %>
+            <div class="lab-empty">Henüz lab çözüm kaydı yok</div>
+          <% } else { %>
+            <% recentLabSolves.forEach(item => { %>
+              <div class="lab-list-row">
+                <span class="lab-list-dot done"></span>
+                <span class="lab-list-main">
+                  <span class="lab-list-title"><%= item.title %></span>
+                  <span class="lab-list-sub"><%= new Date(item.solvedAt).toLocaleDateString('tr-TR') %></span>
+                </span>
+                <span class="lab-list-score"><%= item.points %>p</span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <!-- En İyi Operatörler — madalyalı -->
+        <div class="lab-side-card" style="flex:1;">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:14px;">EN İYİ OPERATÖRLER</div>
+          <div id="leaderList" style="display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;">Yükleniyor...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Yardımcı ── */
+const labFilters = { status: 'all', difficulty: 'all' };
+document.querySelectorAll('.lab-filter-bar .filter-pill').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const group = btn.dataset.filter;
+    document.querySelectorAll('.lab-filter-bar .filter-pill[data-filter="' + group + '"]').forEach(function(item) {
+      item.classList.remove('active');
+    });
+    btn.classList.add('active');
+    labFilters[group] = btn.dataset.value;
+    document.querySelectorAll('.lab-card').forEach(function(card) {
+      const statusMatch = labFilters.status === 'all' || card.dataset.status === labFilters.status;
+      const diffMatch = labFilters.difficulty === 'all' || card.dataset.difficulty === labFilters.difficulty;
+      card.classList.toggle('hidden', !(statusMatch && diffMatch));
+    });
+  });
+});
+
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderLeftColor = color;
+  t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.transform = 'translateX(-50%) translateY(100px)'; }, 3500);
+}
+
+function copyIp() {
+  const ip = document.getElementById('sideIp').innerText;
+  if (ip.includes('ÇÖZÜMLENİYOR')) return;
+  navigator.clipboard.writeText(ip).then(() => showToast('IP Kopyalandı: ' + ip, '#10b981'));
+}
+
+/* ── Boot Modal ── */
+let _bootInterval = null;
+
+function _setStep(n, state) {
+  const el = document.getElementById('bstep-' + n);
+  const st = document.getElementById('bstatus-' + n);
+  if (!el) return;
+  el.classList.remove('active', 'done');
+  el.classList.add(state);
+  st.textContent = state === 'done' ? 'TAMAM' : 'ÇALIŞIYOR';
+}
+
+function _setProgress(pct, msg) {
+  document.getElementById('bootProgressFill').style.width = pct + '%';
+  if (msg) document.getElementById('bootSubtitle').textContent = msg;
+}
+
+function copyBootIp() {
+  const ip = document.getElementById('bootIpValue').textContent;
+  if (ip === '—') return;
+  navigator.clipboard.writeText(ip).then(() => showToast('IP Kopyalandı: ' + ip, '#10b981'));
+}
+
+function closeBootModal() {
+  document.getElementById('bootOverlay').classList.remove('active');
+  if (_bootInterval) clearInterval(_bootInterval);
+  location.reload();
+}
+
+async function deployLab(vmid) {
+  /* Modal aç */
+  document.getElementById('bootOverlay').classList.add('active');
+  _setProgress(5, 'VM klonlanıyor...');
+  _setStep(1, 'active');
+
+  try {
+    const res  = await fetch('/api/start-lab', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vmid: vmid })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      document.getElementById('bootSubtitle').textContent = 'Hata: ' + (data.message || 'Bilinmeyen hata');
+      document.getElementById('bootProgressFill').style.background = '#ef4444';
+      return;
+    }
+
+    _setStep(1, 'done');
+    _setProgress(30, 'Ağ yapılandırılıyor...');
+    _setStep(2, 'active');
+
+    await new Promise(r => setTimeout(r, 1500));
+    _setStep(2, 'done');
+    _setProgress(55, 'Makine başlatılıyor...');
+    _setStep(3, 'active');
+
+    await new Promise(r => setTimeout(r, 2000));
+    _setStep(3, 'done');
+    _setProgress(75, 'IP adresi bekleniyor...');
+    _setStep(4, 'active');
+
+    /* IP polling */
+    _bootInterval = setInterval(async function() {
+      try {
+        const ipRes  = await fetch('/api/get-ip/0');
+        const ipData = await ipRes.json();
+
+        if (ipData.expired) {
+          clearInterval(_bootInterval);
+          document.getElementById('bootSubtitle').textContent = 'Süre doldu, yenileniyor...';
+          setTimeout(() => location.reload(), 1500);
+          return;
+        }
+
+        if (ipData.ip) {
+          clearInterval(_bootInterval);
+          _setStep(4, 'done');
+          _setProgress(100, 'Makine hazır!');
+
+          document.getElementById('bootIpValue').textContent = ipData.ip;
+          document.getElementById('bootIpResult').classList.add('show');
+          document.getElementById('bootCloseBtn').classList.add('show');
+
+          /* Sidebar güncelle */
+          const sideIp = document.getElementById('sideIp');
+          if (sideIp) sideIp.textContent = ipData.ip;
+          const ai = document.getElementById('activeInfo');
+          const nm = document.getElementById('noMachine');
+          if (ai) ai.classList.remove('hidden');
+          if (nm) nm.classList.add('hidden');
+        }
+      } catch (e) {}
+    }, 8000);  // 4s → 8s — Proxmox'a daha az sık istek
+
+  } catch (e) {
+    document.getElementById('bootSubtitle').textContent = 'Bağlantı hatası!';
+  }
+}
+
+/* ── Diğer fonksiyonlar ── */
+async function submitFlag(labId) {
+  const flag = document.getElementById('flagInput-' + labId).value;
+  if (!flag) return showToast('Bayrak boş bırakılamaz!', '#ef4444');
+  const data = await (await fetch('/api/submit-flag', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ labId: labId, flag: flag })
+  })).json();
+  if (data.success) { showToast(data.message, '#10b981'); setTimeout(() => location.reload(), 2000); }
+  else showToast(data.message, '#ef4444');
+}
+
+async function stopLab() {
+  if (confirm('Makineyi sonlandırmak istediğinize emin misiniz?')) {
+    await fetch('/api/stop-lab', { method: 'POST' });
+    location.reload();
+  }
+}
+
+async function updateLeaderboard() {
+  try {
+    const data = await (await fetch('/api/leaderboard')).json();
+    const el = document.getElementById('leaderList');
+    const medals = ['🥇','🥈','🥉'];
+    const mColors = ['#fbbf24','#94a3b8','#b45309'];
+    el.innerHTML = data.slice(0,5).map((u,i) => {
+      const isMe = u.username === '<%= user.username %>';
+      const medal = medals[i] || null;
+      const av = u.avatar
+        ? `<a href="/profile/${u.username}"><img src="${u.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid ${medal?mColors[i]:'rgba(255,255,255,0.1)'};flex-shrink:0;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"></a>`
+        : `<a href="/profile/${u.username}" style="text-decoration:none;"><div style="width:28px;height:28px;border-radius:50%;background:#334155;border:1.5px solid ${medal?mColors[i]:'rgba(255,255,255,0.1)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;">${u.username[0].toUpperCase()}</div></a>`;
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:${isMe?'rgba(56,189,248,0.06)':'rgba(255,255,255,0.02)'};border:1px solid ${isMe?'rgba(56,189,248,0.2)':'rgba(255,255,255,0.04)'};">
+        <span style="font-size:${medal?'16px':'11px'};width:20px;text-align:center;flex-shrink:0;color:${medal?mColors[i]:'#475569'};font-family:'JetBrains Mono',monospace;">${medal||i+1}</span>
+        ${av}
+        <a href="/profile/${u.username}" style="flex:1;font-size:12px;font-weight:600;color:${isMe?'#38bdf8':'#cbd5e1'};text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.username}${isMe?' (Sen)':''}</a>
+        <span style="font-size:10px;font-weight:700;color:${medal?mColors[i]:'#475569'};font-family:'JetBrains Mono',monospace;flex-shrink:0;">${u.points}</span>
+      </div>`;
+    }).join('');
+    const me = data.find(u => u.username === '<%= user.username %>');
+    if (me) document.getElementById('myRank').textContent = '#' + (data.indexOf(me) + 1);
+  } catch (e) {}
+}
+
+function initTimer(expiry) {
+  const el = document.getElementById('sideTimer');
+  setInterval(function() {
+    const diff = new Date(expiry) - new Date();
+    if (diff <= 0) { location.reload(); return; }
+    const m = Math.floor(diff / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }, 1000);
+}
+
+/* ── Sayfa yüklenince ── */
+window.addEventListener('load', function() {
+  updateLeaderboard();
+
+  <% if(user.active_vmid) { %>
+    <% if(user.expiry) { %>
+      initTimer("<%= user.expiry %>");
+    <% } %>
+    <% if(!user.ip_address) { %>
+      var cur = 15;
+      var bar = document.getElementById('innerBar-<%= user.active_vmid_id %>');
+      var iv = setInterval(function() {
+        if (cur < 92) { cur += Math.random() * 2; if (bar) bar.style.width = cur + '%'; }
+        else clearInterval(iv);
+      }, 800);
+      setInterval(async function() {
+        var d = await (await fetch('/api/get-ip/0')).json();
+        if (d.ip || d.expired) location.reload();
+      }, 8000);  // 4s → 8s
+    <% } %>
+  <% } %>
+});
+
+/* ── Bildirim sistemi ── */
+document.addEventListener('DOMContentLoaded', function() {
+  var bell = document.getElementById('notifBellBtn');
+  var drop = document.getElementById('notifDropdown');
+  if (bell && drop) {
+    loadNotificationData();
+    bell.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var open = drop.classList.toggle('active');
+      if (open) markAllAsRead();
+    });
+    document.addEventListener('click', function(e) {
+      if (!bell.contains(e.target) && !drop.contains(e.target)) drop.classList.remove('active');
+    });
+    document.getElementById('notifClearBtn').addEventListener('click', clearAllNotifications);
+  }
+
+  var es = null, retries = 0;
+  function connectSSE() {
+    if (es) es.close();
+    es = new EventSource('/api/notifications/stream');
+    es.onmessage = function(e) { try { processNotification(JSON.parse(e.data)); } catch(err) {} };
+    es.onerror = function() { es.close(); if (retries++ < 3) setTimeout(connectSSE, 5000); };
+    es.addEventListener('ping', function() { retries = 0; });
+  }
+  connectSSE();
+});
+
+/* ── Bildirim Yardımcı Fonksiyonları ── */
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

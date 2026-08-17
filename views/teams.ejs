@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Takım Yönetimi</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .teams-page{flex:1;overflow-y:auto;padding:24px;}
+    .teams-wrap{width:min(1320px,100%);display:flex;flex-direction:column;gap:18px;}
+    .teams-hero{position:relative;overflow:hidden;border:1px solid rgba(56,189,248,.16);border-radius:10px;background:linear-gradient(135deg,rgba(17,24,39,.96),rgba(10,15,30,.92));padding:22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,520px);gap:20px;align-items:end;box-shadow:0 18px 55px rgba(0,0,0,.2);}
+    .teams-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(56,189,248,.09),transparent 45%,rgba(16,185,129,.08));pointer-events:none;}
+    .teams-hero>*{position:relative;z-index:1;}
+    .teams-kicker,.section-label{font-size:9px;font-weight:900;color:#10b981;letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .teams-title{margin:8px 0;font-size:28px;font-weight:900;color:#f8fafc;letter-spacing:0;line-height:1.05;}
+    .teams-subtitle{max-width:680px;font-size:13px;color:#94a3b8;line-height:1.65;}
+    .teams-hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+    .teams-stat{background:rgba(8,12,24,.58);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:13px;min-width:0;}
+    .teams-stat-value{font-size:20px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .teams-stat-label{margin-top:7px;font-size:8px;font-weight:900;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1.1px;text-transform:uppercase;}
+    .team-panel{background:rgba(17,24,39,.78);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:18px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.18);}
+    .team-panel.primary{position:relative;overflow:hidden;border-color:rgba(56,189,248,.22);background:linear-gradient(135deg,rgba(56,189,248,.075),rgba(17,24,39,.82));}
+    .team-panel.primary::before{content:"";position:absolute;left:18px;right:18px;top:0;height:2px;background:linear-gradient(90deg,#38bdf8,#10b981);box-shadow:0 0 24px rgba(56,189,248,.45);}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px;}
+    .panel-title{font-size:18px;font-weight:900;color:#f8fafc;line-height:1.2;word-break:break-word;}
+    .panel-sub{font-size:11px;color:#64748b;margin-top:4px;line-height:1.45;}
+    .team-overview{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:16px;align-items:stretch;}
+    .team-name{font-size:24px;font-weight:900;color:#f8fafc;line-height:1.1;margin-top:6px;}
+    .team-points{font-size:26px;font-weight:900;color:#38bdf8;font-family:'JetBrains Mono',monospace;line-height:1;}
+    .status-pill,.action-pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:28px;padding:6px 10px;border-radius:999px;border:1px solid rgba(56,189,248,.22);background:rgba(56,189,248,.08);color:#38bdf8;font-size:9px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+    .status-pill.leader{border-color:rgba(251,191,36,.32);background:rgba(251,191,36,.1);color:#fbbf24;}
+    .status-pill.green{border-color:rgba(16,185,129,.32);background:rgba(16,185,129,.1);color:#10b981;}
+    .meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;}
+    .meta-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:13px;min-width:0;}
+    .meta-card strong{display:block;font-size:18px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .meta-card span{display:block;margin-top:7px;font-size:8px;font-weight:900;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+    .action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:16px;}
+    .btn-t{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:9px 13px;border-radius:8px;border:1px solid transparent;font-size:11px;font-weight:900;cursor:pointer;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;text-decoration:none;white-space:nowrap;font-family:Inter,sans-serif;}
+    .btn-t:hover{transform:translateY(-1px);}
+    .btn-t .material-icons{font-size:16px;}
+    .btn-primary{background:rgba(56,189,248,.13);border-color:rgba(56,189,248,.34);color:#38bdf8;}
+    .btn-primary:hover{box-shadow:0 0 20px rgba(56,189,248,.13);}
+    .btn-success{background:rgba(16,185,129,.11);border-color:rgba(16,185,129,.32);color:#10b981;}
+    .btn-warning{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.28);color:#fbbf24;}
+    .btn-danger{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.28);color:#ef4444;}
+    .btn-ghost{background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.08);color:#94a3b8;}
+    .member-preview,.ranking-list,.request-list{display:flex;flex-direction:column;gap:9px;}
+    .member-row,.rank-card,.request-card,.team-choice-card{display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.032);padding:12px;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;}
+    .member-row:hover,.rank-card:hover,.team-choice-card:hover{transform:translateY(-1px);border-color:rgba(56,189,248,.18);background:rgba(56,189,248,.035);box-shadow:0 12px 30px rgba(0,0,0,.16);}
+    .avatar,.letter-avatar{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.1);flex-shrink:0;}
+    .avatar{object-fit:cover;}
+    .letter-avatar{display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:900;background:#334155;}
+    .leader-border{border-color:#fbbf24;}
+    .rank-num{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.18);color:#38bdf8;font-size:13px;font-weight:900;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+    .row-main{flex:1;min-width:0;}
+    .row-title{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:900;color:#f8fafc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .row-sub{font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-top:4px;line-height:1.35;}
+    .role-chip{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;border-radius:5px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:#fbbf24;font-size:8px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:1px;line-height:1.2;}
+    .score-block{text-align:right;flex-shrink:0;}
+    .score-block strong{display:block;font-size:17px;font-weight:900;color:#38bdf8;font-family:'JetBrains Mono',monospace;line-height:1;}
+    .score-block span{display:block;margin-top:5px;font-size:8px;font-weight:900;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+    .online-state{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:6px;font-size:8px;font-weight:900;color:#64748b;font-family:'JetBrains Mono',monospace;text-transform:uppercase;}
+    .sdot{width:8px;height:8px;border-radius:50%;background:#475569;display:inline-block;flex-shrink:0;}
+    .sdot.on{background:#10b981;box-shadow:0 0 7px #10b981;}
+    .rank-card{min-height:78px;}
+    .rank-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+    .team-avatars{display:flex;align-items:center;gap:5px;margin-top:9px;}
+    .mini-avatar,.mini-letter{width:25px;height:25px;border-radius:50%;border:1px solid rgba(255,255,255,.13);flex-shrink:0;}
+    .mini-avatar{object-fit:cover;}
+    .mini-letter{display:flex;align-items:center;justify-content:center;background:#334155;color:#fff;font-size:9px;font-weight:900;}
+    .request-card{border-color:rgba(251,191,36,.18);background:rgba(251,191,36,.055);}
+    .request-card.purple{border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.055);}
+    .request-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    .empty-state{border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:26px;text-align:center;color:#64748b;font-size:12px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.02);}
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(2,6,23,.88);backdrop-filter:blur(14px);padding:18px;}
+    .modal-card{width:min(620px,100%);max-height:86vh;overflow-y:auto;position:relative;background:rgba(10,15,30,.98);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.36);animation:modalIn .18s ease-out;}
+    .modal-card.chat-wide{width:min(920px,100%);}
+    @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .modal-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);color:#ef4444;cursor:pointer;font-size:20px;line-height:1;}
+    .modal-head{padding-right:38px;margin-bottom:16px;}
+    .modal-title{font-size:22px;font-weight:900;color:#f8fafc;line-height:1.2;margin-top:6px;}
+    .form-stack{display:flex;flex-direction:column;gap:10px;}
+    .input-t{width:100%;box-sizing:border-box;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 12px;font-size:13px;color:#e2e8f0;outline:none;transition:border-color .2s,background .2s;}
+    .input-t:focus{border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.055);}
+    .chat-button{position:relative;}
+    .chat-badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:999px;background:#10b981;color:#06111f;border:2px solid #111827;font-size:10px;font-weight:900;display:none;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;}
+    .chat-box{display:flex;flex-direction:column;height:min(640px,74vh);min-height:480px;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden;background:rgba(8,12,24,.45);}
+    .chat-list{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+    .chat-message{display:flex;gap:9px;align-items:flex-end;max-width:82%;}
+    .chat-message.mine{align-self:flex-end;flex-direction:row-reverse;}
+    .chat-avatar,.chat-letter{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.12);flex-shrink:0;}
+    .chat-avatar{object-fit:cover;}
+    .chat-letter{display:flex;align-items:center;justify-content:center;background:#334155;color:#fff;font-size:11px;font-weight:900;}
+    .chat-bubble{border:1px solid rgba(255,255,255,.08);border-radius:10px 10px 10px 3px;background:rgba(255,255,255,.045);padding:9px 10px;min-width:0;}
+    .chat-message.mine .chat-bubble{border-color:rgba(16,185,129,.25);background:rgba(16,185,129,.11);border-radius:10px 10px 3px 10px;}
+    .chat-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:9px;font-weight:900;color:#64748b;font-family:'JetBrains Mono',monospace;}
+    .chat-message.mine .chat-meta{justify-content:flex-end;color:#10b981;}
+    .chat-text{font-size:13px;color:#dbeafe;line-height:1.45;word-break:break-word;white-space:pre-wrap;}
+    .chat-form{display:grid;grid-template-columns:1fr auto;gap:9px;border-top:1px solid rgba(255,255,255,.08);padding:12px;background:rgba(17,24,39,.78);}
+    .chat-input{resize:none;max-height:110px;min-height:40px;}
+    .chat-typing{min-height:18px;padding:0 14px 9px;color:#10b981;font-size:10px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:.4px;background:rgba(8,12,24,.45);}
+    .chat-typing:empty{display:none;}
+    .msg{padding:10px 12px;border-radius:7px;font-size:12px;font-weight:800;display:none;}
+    .msg.ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#10b981;}
+    .msg.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;}
+    @media(max-width:1180px){.teams-hero,.team-overview{grid-template-columns:1fr}.teams-hero-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:760px){.teams-page{padding:16px}.teams-title{font-size:23px}.teams-hero-stats,.meta-grid,.action-grid,.chat-form{grid-template-columns:1fr}.panel-head,.rank-card,.request-card,.team-choice-card{align-items:stretch;flex-direction:column}.rank-actions,.request-actions{width:100%;justify-content:stretch}.rank-actions .btn-t,.request-actions .btn-t{flex:1}.score-block{text-align:left}.online-state{justify-content:flex-start}.chat-message{max-width:96%}.chat-box{height:min(620px,76vh);min-height:430px}}
+  </style>
+</head>
+<body>
+<%
+  const sc = (str) => {
+    let h=0; for(let i=0;i<str.length;i++) h=str.charCodeAt(i)+((h<<5)-h);
+    const c=(h&0x00FFFFFF).toString(16).toUpperCase();
+    return '#'+'00000'.substring(0,6-c.length)+c;
+  };
+  const isLeader = myTeam && String(myTeam.leaderId)===String(user.id);
+  const totalTeams = Array.isArray(teamRanking) ? teamRanking.length : 0;
+  const totalOperators = Array.isArray(teamRanking) ? teamRanking.reduce((sum, t) => sum + (t.memberCount || 0), 0) : 0;
+  const topTeam = Array.isArray(teamRanking) && teamRanking.length ? teamRanking[0] : null;
+%>
+<div class="dash-shell">
+  <%- include('partials/sidebar-only') %>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">TAKIM YONETIMI // <span>OPERATOR_GRUPLARI</span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <main class="teams-page page-enter">
+      <div class="teams-wrap">
+        <section class="teams-hero">
+          <div>
+            <div class="teams-kicker">Operatör Grupları</div>
+            <h1 class="teams-title">Takım Yönetimi</h1>
+            <div class="teams-subtitle">Takım kur, katılma isteklerini yönet, üyeleri takip et ve ekip sıralamasını daha düzenli bir operasyon görünümünde izle.</div>
+          </div>
+          <div class="teams-hero-stats">
+            <div class="teams-stat"><div class="teams-stat-value"><%= totalTeams %></div><div class="teams-stat-label">Aktif Takım</div></div>
+            <div class="teams-stat"><div class="teams-stat-value"><%= totalOperators %></div><div class="teams-stat-label">Operatör</div></div>
+            <div class="teams-stat"><div class="teams-stat-value"><%= topTeam ? topTeam.points : 0 %></div><div class="teams-stat-label">En Yüksek Puan</div></div>
+          </div>
+        </section>
+
+        <section id="invitesSection" class="team-panel" style="display:none;">
+          <div class="panel-head">
+            <div>
+              <div class="section-label" style="color:#fbbf24;">Bekleyen Davetler</div>
+              <div class="panel-title">Takım Davetleri</div>
+            </div>
+          </div>
+          <div id="invitesList" class="request-list"></div>
+        </section>
+
+        <% if(myTeam) { %>
+        <section class="team-panel primary">
+          <div class="team-overview">
+            <div>
+              <div class="section-label">Mevcut Takım</div>
+              <div class="team-name"><%= myTeam.name %></div>
+              <div class="meta-grid">
+                <div class="meta-card"><strong id="myTeamPts">--</strong><span>Toplam Puan</span></div>
+                <div class="meta-card"><strong><%= myTeam.members.length %>/4</strong><span>Kapasite</span></div>
+                <div class="meta-card"><strong><%= isLeader ? 'Lider' : 'Üye' %></strong><span>Rol</span></div>
+              </div>
+              <div class="action-grid">
+                <button onclick="openChatModal()" class="btn-t btn-success chat-button">
+                  <span class="material-icons">forum</span>Takım Chat
+                  <span id="chatUnreadBadge" class="chat-badge">0</span>
+                </button>
+                <% if(isLeader && myTeam.members.length < 4) { %>
+                  <button onclick="openInviteModal()" class="btn-t btn-primary"><span class="material-icons">person_add</span>Üye Davet Et</button>
+                <% } %>
+                <% if(isLeader) { %>
+                  <button onclick="openManageModal()" class="btn-t btn-warning"><span class="material-icons">manage_accounts</span>Üye Yönetimi</button>
+                  <button onclick="openJoinRequestsModal()" class="btn-t btn-ghost"><span class="material-icons">approval</span>İstekler</button>
+                <% } %>
+                <button onclick="leaveTeam()" class="btn-t btn-danger"><span class="material-icons">logout</span>Takımdan Ayrıl</button>
+              </div>
+            </div>
+            <div>
+              <div class="panel-head" style="margin-bottom:10px;">
+                <div>
+                  <div class="section-label" style="color:#38bdf8;">Üyeler</div>
+                  <div class="panel-sub">Canlı durum ve puan özeti</div>
+                </div>
+                <span class="status-pill <%= isLeader ? 'leader' : 'green' %>"><span class="material-icons">verified_user</span><%= isLeader ? 'Lider' : 'Aktif' %></span>
+              </div>
+              <div id="memberStatsPanel" class="member-preview">
+                <div class="empty-state">Yükleniyor...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <% } else { %>
+        <section class="team-panel primary">
+          <div class="team-overview">
+            <div>
+              <div class="section-label">Takımsız Operatör</div>
+              <div class="team-name">Operasyona Ekip Seç</div>
+              <div class="panel-sub" style="margin-top:8px;">Yeni bir takım oluşturabilir veya mevcut takımlara katılma isteği gönderebilirsin.</div>
+            </div>
+            <div class="action-grid" style="align-self:end;">
+              <button onclick="openCreateModal()" class="btn-t btn-primary"><span class="material-icons">add</span>Takım Oluştur</button>
+              <button onclick="openJoinTeamsModal()" class="btn-t btn-success"><span class="material-icons">login</span>Takımlara Katıl</button>
+            </div>
+          </div>
+        </section>
+        <% } %>
+
+        <section class="team-panel">
+          <div class="panel-head">
+            <div>
+              <div class="section-label" style="color:#38bdf8;">Takım Sıralaması</div>
+              <div class="panel-title">Ekip Performansı</div>
+              <div class="panel-sub">Toplam takım puanına göre sıralanır</div>
+            </div>
+          </div>
+          <div id="rankingList" class="ranking-list">
+            <div class="empty-state">Yükleniyor...</div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="teamModal" class="modal-overlay">
+  <div class="modal-card">
+    <button onclick="closeTeamModal()" class="modal-close">×</button>
+    <div id="teamModalContent"></div>
+  </div>
+</div>
+
+<script>
+const MY_TEAM_ID = '<%= myTeam ? myTeam.id : "" %>';
+const IS_LEADER = '<%= isLeader ? "1" : "0" %>';
+const HAS_TEAM = '<%= myTeam ? "1" : "0" %>';
+const CURRENT_USER_ID = '<%= user.id %>';
+let pendingConfirm = null;
+const chatSeenIds = new Set();
+let chatUnreadCount = 0;
+let chatSyncTimer = null;
+let chatTypingPollTimer = null;
+let chatTypingPulseTimer = null;
+let chatTypingStopTimer = null;
+let lastTypingPulse = 0;
+const chatTypingUsers = {};
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function openTeamModal(kicker, title, body) {
+  if (!body.includes('teamChatList')) stopChatSync();
+  const modalCard = document.querySelector('#teamModal .modal-card');
+  if (modalCard) modalCard.classList.toggle('chat-wide', body.includes('teamChatList'));
+  document.getElementById('teamModalContent').innerHTML = `
+    <div class="modal-head">
+      <div class="section-label">${escapeHtml(kicker)}</div>
+      <div class="modal-title">${escapeHtml(title)}</div>
+    </div>
+    ${body}
+  `;
+  document.getElementById('teamModal').style.display = 'flex';
+}
+
+function closeTeamModal() {
+  document.getElementById('teamModal').style.display = 'none';
+  pendingConfirm = null;
+  stopChatSync();
+}
+
+function isChatOpen() {
+  return document.getElementById('teamModal').style.display === 'flex' && !!document.getElementById('teamChatList');
+}
+
+function updateChatBadge() {
+  const badge = document.getElementById('chatUnreadBadge');
+  if (!badge) return;
+  badge.textContent = chatUnreadCount > 9 ? '9+' : String(chatUnreadCount);
+  badge.style.display = chatUnreadCount > 0 ? 'flex' : 'none';
+}
+
+function scrollChatToBottom() {
+  const list = document.getElementById('teamChatList');
+  if (!list) return;
+  requestAnimationFrame(() => {
+    list.scrollTop = list.scrollHeight;
+    requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
+  });
+}
+
+function stopChatSync() {
+  if (chatSyncTimer) clearInterval(chatSyncTimer);
+  if (chatTypingPollTimer) clearInterval(chatTypingPollTimer);
+  chatSyncTimer = null;
+  chatTypingPollTimer = null;
+  sendTypingState(false);
+}
+
+function startChatSync() {
+  stopChatSync();
+  chatSyncTimer = setInterval(() => syncTeamChat(), 2500);
+  chatTypingPollTimer = setInterval(() => pollTypingUsers(), 1000);
+}
+
+function formatChatTime(value) {
+  try {
+    return new Date(value).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+  } catch(e) {
+    return '';
+  }
+}
+
+function renderChatMessage(m) {
+  const mine = m.mine || String(m.senderId) === String(CURRENT_USER_ID);
+  const avatar = m.senderAvatar
+    ? `<img src="${escapeHtml(m.senderAvatar)}" class="chat-avatar" alt="${escapeHtml(m.senderUsername)}">`
+    : `<div class="chat-letter">${escapeHtml(m.senderUsername || '?').charAt(0).toUpperCase()}</div>`;
+  return `
+    <div class="chat-message ${mine ? 'mine' : ''}" data-chat-id="${escapeHtml(m.id)}">
+      ${avatar}
+      <div class="chat-bubble">
+        <div class="chat-meta">
+          <span>${mine ? 'Sen' : escapeHtml(m.senderUsername)}</span>
+          <span>${formatChatTime(m.createdAt)}</span>
+        </div>
+        <div class="chat-text">${m.message || ''}</div>
+      </div>
+    </div>
+  `;
+}
+
+function appendChatMessage(message, markUnread = false) {
+  if (!message || !message.id || chatSeenIds.has(message.id)) return;
+  const list = document.getElementById('teamChatList');
+  if (!list) {
+    if (markUnread) {
+      chatUnreadCount += 1;
+      updateChatBadge();
+    }
+    return;
+  }
+  chatSeenIds.add(message.id);
+  if (list) {
+    const empty = list.querySelector('.empty-state');
+    if (empty) empty.remove();
+    list.insertAdjacentHTML('beforeend', renderChatMessage(message));
+    scrollChatToBottom();
+  }
+}
+
+async function syncTeamChat() {
+  const list = document.getElementById('teamChatList');
+  if (!list || !MY_TEAM_ID) return;
+  try {
+    const data = await (await fetch('/api/teams/chat')).json();
+    if (!data.success) return;
+    if (!data.messages.length && !chatSeenIds.size) {
+      list.innerHTML = '<div class="empty-state">Henüz mesaj yok.</div>';
+      return;
+    }
+    data.messages.forEach(m => appendChatMessage(m, false));
+    scrollChatToBottom();
+  } catch(e) {}
+}
+
+function renderTypingIndicator() {
+  const el = document.getElementById('chatTypingIndicator');
+  if (!el) return;
+  const now = Date.now();
+  Object.keys(chatTypingUsers).forEach(username => {
+    if (chatTypingUsers[username] < now) delete chatTypingUsers[username];
+  });
+  const names = Object.keys(chatTypingUsers);
+  if (!names.length) {
+    el.textContent = '';
+  } else if (names.length === 1) {
+    el.textContent = `${names[0]} yazıyor...`;
+  } else {
+    el.textContent = `${names.slice(0, 2).join(', ')} yazıyor...`;
+  }
+  scrollChatToBottom();
+}
+
+async function pollTypingUsers() {
+  if (!isChatOpen()) return;
+  try {
+    const data = await (await fetch('/api/teams/chat/typing')).json();
+    if (!data.success) return;
+    Object.keys(chatTypingUsers).forEach(username => delete chatTypingUsers[username]);
+    (data.typing || []).forEach(item => {
+      chatTypingUsers[item.username] = Date.now() + 1800;
+    });
+    renderTypingIndicator();
+  } catch(e) {}
+}
+
+function handleTypingEvent(eventData) {
+  if (!eventData || eventData.teamId !== MY_TEAM_ID || String(eventData.userId) === String(CURRENT_USER_ID)) return;
+  if (eventData.typing) {
+    chatTypingUsers[eventData.username] = Date.now() + 3500;
+    setTimeout(renderTypingIndicator, 3600);
+  } else {
+    delete chatTypingUsers[eventData.username];
+  }
+  renderTypingIndicator();
+}
+
+function sendTypingState(typing) {
+  if (!MY_TEAM_ID) return;
+  fetch('/api/teams/chat/typing', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ typing })
+  }).catch(() => {});
+}
+
+function pulseTyping() {
+  const now = Date.now();
+  if (now - lastTypingPulse > 1300) {
+    lastTypingPulse = now;
+    sendTypingState(true);
+  }
+  if (chatTypingStopTimer) clearTimeout(chatTypingStopTimer);
+  chatTypingStopTimer = setTimeout(() => sendTypingState(false), 1200);
+}
+
+async function openChatModal() {
+  if (!MY_TEAM_ID) return;
+  chatUnreadCount = 0;
+  updateChatBadge();
+  openTeamModal('Takım Chat', 'Canlı Mesajlaşma', `
+    <div class="chat-box">
+      <div id="teamChatList" class="chat-list"><div class="empty-state">Mesajlar yükleniyor...</div></div>
+      <div id="chatTypingIndicator" class="chat-typing"></div>
+      <form class="chat-form" onsubmit="sendTeamChatMessage(event)">
+        <textarea id="teamChatInput" class="input-t chat-input" maxlength="800" rows="1" placeholder="Mesaj yaz..."></textarea>
+        <button type="submit" class="btn-t btn-success"><span class="material-icons">send</span>Gönder</button>
+      </form>
+    </div>
+  `);
+
+  try {
+    chatSeenIds.clear();
+    const data = await (await fetch('/api/teams/chat')).json();
+    const list = document.getElementById('teamChatList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!data.success || !data.messages.length) {
+      list.innerHTML = '<div class="empty-state">Henüz mesaj yok.</div>';
+    } else {
+      data.messages.forEach(m => appendChatMessage(m, false));
+    }
+    scrollChatToBottom();
+    startChatSync();
+    setTimeout(() => {
+      const input = document.getElementById('teamChatInput');
+      if (!input) return;
+      input.focus();
+      input.addEventListener('input', pulseTyping);
+      input.addEventListener('keydown', pulseTyping);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendTeamChatMessage(e);
+        }
+      });
+    }, 50);
+  } catch(e) {
+    const list = document.getElementById('teamChatList');
+    if (list) list.innerHTML = '<div class="empty-state" style="color:#ef4444;">Mesajlar alınamadı.</div>';
+  }
+}
+
+async function sendTeamChatMessage(event) {
+  event.preventDefault();
+  const input = document.getElementById('teamChatInput');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+  input.value = '';
+  if (chatTypingStopTimer) clearTimeout(chatTypingStopTimer);
+  sendTypingState(false);
+
+  try {
+    const data = await (await fetch('/api/teams/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ message:text })
+    })).json();
+    if (data.success) appendChatMessage(data.message, false);
+    else alert(data.message || 'Mesaj gönderilemedi.');
+  } catch(e) {
+    alert('Mesaj gönderilemedi.');
+  }
+}
+
+function handleTeamChatEvent(eventData) {
+  if (!eventData || eventData.teamId !== MY_TEAM_ID || !eventData.message) return;
+  const msg = { ...eventData.message, mine: String(eventData.message.senderId) === String(CURRENT_USER_ID) };
+  appendChatMessage(msg, !msg.mine);
+}
+
+function showMsg(id, msg, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'msg ' + (type === 'success' ? 'ok' : 'err');
+  el.style.display = 'block';
+}
+
+function confirmAction(title, text, action) {
+  pendingConfirm = action;
+  openTeamModal('Onay', title, `
+    <div class="panel-sub" style="font-size:13px;margin-bottom:16px;">${escapeHtml(text)}</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+      <button onclick="closeTeamModal()" class="btn-t btn-ghost">Vazgeç</button>
+      <button onclick="runConfirm()" class="btn-t btn-danger"><span class="material-icons">check</span>Onayla</button>
+    </div>
+  `);
+}
+
+async function runConfirm() {
+  const action = pendingConfirm;
+  pendingConfirm = null;
+  if (action) await action();
+}
+
+function renderMemberAvatar(m, cls = '') {
+  return m.avatar
+    ? `<img src="${escapeHtml(m.avatar)}" class="avatar ${cls}" alt="${escapeHtml(m.username)}">`
+    : `<div class="letter-avatar ${cls}" style="background:#334155;">${escapeHtml(m.username || '?').charAt(0).toUpperCase()}</div>`;
+}
+
+function renderMemberRow(m, index, compactActions = '') {
+  return `
+    <div class="member-row" data-username="${escapeHtml(m.username)}" id="mrow-${escapeHtml(m.id)}">
+      <span class="rank-num">#${index + 1}</span>
+      ${renderMemberAvatar(m, m.isLeader ? 'leader-border' : '')}
+      <div class="row-main">
+        <div class="row-title">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(m.username)}</span>
+          ${m.isLeader ? '<span class="role-chip">LİDER</span>' : ''}
+        </div>
+        <div class="row-sub">${Number(m.solvedCount || 0)} görev çözdü</div>
+      </div>
+      <div class="score-block">
+        <strong>${Number(m.points || 0).toLocaleString()}</strong>
+        <span>Puan</span>
+        <div class="online-state ${m.online ? 'is-online' : ''}">
+          <span class="sdot ${m.online ? 'on' : ''}"></span>
+          <span class="online-text">${m.online ? 'Çevrimiçi' : 'Çevrimdışı'}</span>
+        </div>
+      </div>
+      ${compactActions}
+    </div>
+  `;
+}
+
+async function loadMemberStats() {
+  if (!MY_TEAM_ID) return;
+  const panel = document.getElementById('memberStatsPanel');
+  if (!panel) return;
+
+  try {
+    const data = await (await fetch('/api/teams/detail/' + encodeURIComponent(MY_TEAM_ID))).json();
+    if (!data.success) return;
+    const pointsEl = document.getElementById('myTeamPts');
+    if (pointsEl) pointsEl.textContent = Number(data.team.points || 0).toLocaleString();
+    panel.innerHTML = data.members.map((m, i) => renderMemberRow(m, i)).join('');
+    updateOnline();
+  } catch(e) {}
+}
+
+async function loadTeamRanking() {
+  const container = document.getElementById('rankingList');
+  if (!container) return;
+
+  try {
+    const data = await (await fetch('/api/teams/ranking')).json();
+    if (!data.length) {
+      container.innerHTML = '<div class="empty-state">Henüz takım yok.</div>';
+      return;
+    }
+
+    container.innerHTML = data.map((team, idx) => `
+      <div class="rank-card">
+        <div class="rank-num">#${idx + 1}</div>
+        <div class="row-main">
+          <div class="row-title">${escapeHtml(team.name)}</div>
+          <div class="row-sub">${team.memberCount}/4 üye</div>
+          <div class="team-avatars">
+            ${(team.members || []).map(m => m.avatar
+              ? `<img src="${escapeHtml(m.avatar)}" title="${escapeHtml(m.username)}" class="mini-avatar">`
+              : `<div title="${escapeHtml(m.username)}" class="mini-letter">${escapeHtml(m.username || '?').charAt(0).toUpperCase()}</div>`
+            ).join('')}
+          </div>
+        </div>
+        <div class="score-block">
+          <strong>${Number(team.points || 0).toLocaleString()}</strong>
+          <span>Takım Puanı</span>
+        </div>
+        <div class="rank-actions">
+          <button onclick="openTeamDetail('${escapeHtml(team.id)}')" class="btn-t btn-primary"><span class="material-icons">visibility</span>Detay</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state" style="color:#ef4444;">Yüklenemedi.</div>';
+  }
+}
+
+async function openTeamDetail(teamId) {
+  openTeamModal('Takım Detayı', 'Yükleniyor...', '<div class="empty-state">Yükleniyor...</div>');
+  try {
+    const data = await (await fetch('/api/teams/detail/' + encodeURIComponent(teamId))).json();
+    if (!data.success) {
+      openTeamModal('Takım Detayı', 'Yüklenemedi', '<div class="empty-state" style="color:#ef4444;">Takım bilgisi alınamadı.</div>');
+      return;
+    }
+    openTeamModal('Takım Detayı', data.team.name, `
+      <div class="meta-grid" style="margin-bottom:14px;">
+        <div class="meta-card"><strong>${Number(data.team.points || 0).toLocaleString()}</strong><span>Toplam Puan</span></div>
+        <div class="meta-card"><strong>${data.team.memberCount}/4</strong><span>Kapasite</span></div>
+        <div class="meta-card"><strong>${data.members.length}</strong><span>Aktif Kayıt</span></div>
+      </div>
+      <div class="member-preview">${data.members.map((m, i) => renderMemberRow(m, i)).join('')}</div>
+    `);
+    updateOnline();
+  } catch(e) {
+    openTeamModal('Takım Detayı', 'Yüklenemedi', '<div class="empty-state" style="color:#ef4444;">Takım bilgisi alınamadı.</div>');
+  }
+}
+
+function openCreateModal() {
+  openTeamModal('Yeni Takım', 'Takım Oluştur', `
+    <div class="form-stack">
+      <input type="text" id="teamNameInput" class="input-t" placeholder="Takım adı" maxlength="30">
+      <button onclick="createTeam()" class="btn-t btn-primary"><span class="material-icons">add</span>Oluştur</button>
+      <div class="msg" id="createMsg"></div>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('teamNameInput')?.focus(), 50);
+}
+
+function openInviteModal() {
+  openTeamModal('Davet', 'Üye Davet Et', `
+    <div class="form-stack">
+      <input type="text" id="inviteInput" class="input-t" placeholder="Kullanıcı adı">
+      <button onclick="sendInvite()" class="btn-t btn-primary"><span class="material-icons">person_add</span>Davet Gönder</button>
+      <div class="msg" id="inviteMsg"></div>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('inviteInput')?.focus(), 50);
+}
+
+async function openJoinTeamsModal() {
+  openTeamModal('Takımlar', 'Takımlara Katıl', '<div class="empty-state">Yükleniyor...</div>');
+  try {
+    const teams = await (await fetch('/api/teams/list')).json();
+    const body = teams.length ? `
+      <div class="member-preview">
+        ${teams.map(t => `
+          <div class="team-choice-card">
+            <div class="row-main">
+              <div class="row-title">${escapeHtml(t.name)}</div>
+              <div class="row-sub">${t.memberCount}/4 üye${t.isFull ? ' · Dolu' : ''}</div>
+              <div class="team-avatars">
+                ${(t.members || []).map(m => m.avatar
+                  ? `<img src="${escapeHtml(m.avatar)}" title="${escapeHtml(m.username)}" class="mini-avatar">`
+                  : `<div title="${escapeHtml(m.username)}" class="mini-letter">${escapeHtml(m.username || '?').charAt(0).toUpperCase()}</div>`
+                ).join('')}
+              </div>
+            </div>
+            ${t.isFull
+              ? '<span class="status-pill">Dolu</span>'
+              : t.hasRequested
+                ? '<span class="status-pill leader">İstek Gönderildi</span>'
+                : `<button onclick="reqJoin('${escapeHtml(t.id)}', this)" class="btn-t btn-success"><span class="material-icons">login</span>Katıl</button>`
+            }
+          </div>
+        `).join('')}
+      </div>
+    ` : '<div class="empty-state">Henüz takım yok.</div>';
+    openTeamModal('Takımlar', 'Takımlara Katıl', body);
+  } catch(e) {
+    openTeamModal('Takımlar', 'Yüklenemedi', '<div class="empty-state" style="color:#ef4444;">Takımlar alınamadı.</div>');
+  }
+}
+
+async function openManageModal() {
+  if (!MY_TEAM_ID) return;
+  openTeamModal('Üye Yönetimi', 'Yükleniyor...', '<div class="empty-state">Yükleniyor...</div>');
+  try {
+    const data = await (await fetch('/api/teams/detail/' + encodeURIComponent(MY_TEAM_ID))).json();
+    if (!data.success) return;
+    const manageable = data.members.filter(m => !m.isLeader);
+    const body = manageable.length ? `
+      <div class="member-preview">
+        ${manageable.map((m, i) => renderMemberRow(m, i, `
+          <div class="request-actions">
+            <button onclick="transferLeader('${escapeHtml(m.id)}')" class="btn-t btn-warning"><span class="material-icons">military_tech</span>Lider Yap</button>
+            <button onclick="kickMember('${escapeHtml(m.id)}')" class="btn-t btn-danger"><span class="material-icons">person_remove</span>Çıkar</button>
+          </div>
+        `)).join('')}
+      </div>
+    ` : '<div class="empty-state">Yönetilecek başka üye yok.</div>';
+    openTeamModal('Üye Yönetimi', data.team.name, body);
+    updateOnline();
+  } catch(e) {
+    openTeamModal('Üye Yönetimi', 'Yüklenemedi', '<div class="empty-state" style="color:#ef4444;">Üyeler alınamadı.</div>');
+  }
+}
+
+async function openJoinRequestsModal() {
+  openTeamModal('Katılma İstekleri', 'Yükleniyor...', '<div class="empty-state">Yükleniyor...</div>');
+  try {
+    const reqs = await (await fetch('/api/teams/join-requests')).json();
+    const body = reqs.length ? `
+      <div class="request-list">
+        ${reqs.map(r => `
+          <div class="request-card purple">
+            ${r.avatar ? `<img src="${escapeHtml(r.avatar)}" class="avatar" alt="${escapeHtml(r.username)}">` : `<div class="letter-avatar">${escapeHtml(r.username || '?').charAt(0).toUpperCase()}</div>`}
+            <div class="row-main">
+              <div class="row-title">${escapeHtml(r.username)}</div>
+              <div class="row-sub">Katılma isteği bekliyor</div>
+            </div>
+            <div class="request-actions">
+              <button onclick="approveJoin('${escapeHtml(r.id)}')" class="btn-t btn-success"><span class="material-icons">check</span>Onayla</button>
+              <button onclick="rejectJoin('${escapeHtml(r.id)}')" class="btn-t btn-danger"><span class="material-icons">close</span>Reddet</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    ` : '<div class="empty-state">Bekleyen istek yok.</div>';
+    openTeamModal('Katılma İstekleri', 'Bekleyen İstekler', body);
+  } catch(e) {
+    openTeamModal('Katılma İstekleri', 'Yüklenemedi', '<div class="empty-state" style="color:#ef4444;">İstekler alınamadı.</div>');
+  }
+}
+
+async function loadInvites() {
+  try {
+    const inv = await (await fetch('/api/teams/invites')).json();
+    const sec = document.getElementById('invitesSection');
+    const list = document.getElementById('invitesList');
+    if (!sec || !list) return;
+    if (!inv.length) {
+      sec.style.display = 'none';
+      return;
+    }
+    sec.style.display = 'block';
+    list.innerHTML = inv.map(i => `
+      <div class="request-card">
+        <div class="row-main">
+          <div class="row-title">${escapeHtml(i.name)}</div>
+          <div class="row-sub">${escapeHtml(i.leaderUsername)} tarafından davet edildi</div>
+        </div>
+        <div class="request-actions">
+          <button onclick="acceptInv('${escapeHtml(i.id)}')" class="btn-t btn-success"><span class="material-icons">check</span>Kabul</button>
+          <button onclick="declineInv('${escapeHtml(i.id)}')" class="btn-t btn-danger"><span class="material-icons">close</span>Reddet</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function updateOnline() {
+  try {
+    const data = await (await fetch('/api/leaderboard')).json();
+    const map = {};
+    data.forEach(u => { map[u.username] = !!u.online; });
+    document.querySelectorAll('[data-username]').forEach(row => {
+      const online = !!map[row.dataset.username];
+      const dot = row.querySelector('.sdot');
+      const text = row.querySelector('.online-text');
+      const state = row.querySelector('.online-state');
+      if (dot) dot.classList.toggle('on', online);
+      if (text) text.textContent = online ? 'Çevrimiçi' : 'Çevrimdışı';
+      if (state) {
+        state.classList.toggle('is-online', online);
+        state.style.color = online ? '#10b981' : '#64748b';
+      }
+    });
+  } catch(e) {}
+}
+
+async function createTeam() {
+  const input = document.getElementById('teamNameInput');
+  const name = input ? input.value.trim() : '';
+  if (!name) return showMsg('createMsg', 'Takım adı girin.', 'error');
+  const d = await (await fetch('/api/teams/create', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ name }) })).json();
+  if (d.success) { showMsg('createMsg', d.message, 'success'); setTimeout(() => location.reload(), 900); }
+  else showMsg('createMsg', d.message, 'error');
+}
+
+async function sendInvite() {
+  const input = document.getElementById('inviteInput');
+  const targetUsername = input ? input.value.trim() : '';
+  if (!targetUsername) return showMsg('inviteMsg', 'Kullanıcı adı girin.', 'error');
+  const d = await (await fetch('/api/teams/invite', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ targetUsername }) })).json();
+  if (d.success) { showMsg('inviteMsg', d.message, 'success'); input.value = ''; }
+  else showMsg('inviteMsg', d.message, 'error');
+}
+
+async function reqJoin(teamId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">sync</span>Gönderiliyor';
+  const d = await (await fetch('/api/teams/request-join', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ teamId }) })).json();
+  if (d.success) {
+    btn.outerHTML = '<span class="status-pill leader">İstek Gönderildi</span>';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">login</span>Katıl';
+    alert(d.message);
+  }
+}
+
+async function acceptInv(id) {
+  const d = await (await fetch('/api/teams/accept', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ teamId:id }) })).json();
+  if (d.success) location.reload(); else alert(d.message);
+}
+
+async function declineInv(id) {
+  const d = await (await fetch('/api/teams/decline', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ teamId:id }) })).json();
+  if (d.success) loadInvites();
+}
+
+async function approveJoin(uid) {
+  const d = await (await fetch('/api/teams/approve-join', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ teamId:MY_TEAM_ID, targetUserId:uid }) })).json();
+  if (d.success) location.reload(); else alert(d.message);
+}
+
+async function rejectJoin(uid) {
+  const d = await (await fetch('/api/teams/reject-join', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ teamId:MY_TEAM_ID, targetUserId:uid }) })).json();
+  if (d.success) openJoinRequestsModal();
+}
+
+function leaveTeam() {
+  confirmAction('Takımdan Ayrıl', 'Bu işlemden sonra takım üyeliğin kaldırılır.', async () => {
+    const d = await (await fetch('/api/teams/leave', { method:'POST' })).json();
+    if (d.success) location.reload(); else alert(d.message);
+  });
+}
+
+function kickMember(targetUserId) {
+  confirmAction('Üyeyi Çıkar', 'Bu kullanıcı takımdan çıkarılacak.', async () => {
+    const d = await (await fetch('/api/teams/kick', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ targetUserId }) })).json();
+    if (d.success) location.reload(); else alert(d.message);
+  });
+}
+
+function transferLeader(targetUserId) {
+  confirmAction('Liderliği Devret', 'Takım liderliği seçilen kullanıcıya aktarılacak.', async () => {
+    const d = await (await fetch('/api/teams/transfer-leader', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ targetUserId }) })).json();
+    if (d.success) location.reload(); else alert(d.message);
+  });
+}
+
+document.getElementById('teamModal').addEventListener('click', e => {
+  if (e.target.id === 'teamModal') closeTeamModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeTeamModal();
+});
+window.addEventListener('focus', () => {
+  if (isChatOpen()) syncTeamChat();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const bell = document.getElementById('notifBellBtn');
+  const drop = document.getElementById('notifDropdown');
+  if (bell && drop) {
+    loadNotificationData();
+    bell.addEventListener('click', e => { e.stopPropagation(); const o = drop.classList.toggle('active'); if(o) markAllAsRead(); });
+    document.addEventListener('click', e => { if(!bell.contains(e.target)&&!drop.contains(e.target)) drop.classList.remove('active'); });
+    document.getElementById('notifClearBtn').addEventListener('click', clearAllNotifications);
+  }
+
+  let es = null, r = 0;
+  function conn() {
+    if (es) es.close();
+    es = new EventSource('/api/notifications/stream');
+    es.onopen = () => setTimeout(updateOnline, 500);
+    es.onmessage = e => {
+      try {
+        const n = JSON.parse(e.data);
+        if (n.type === 'team_chat_message') {
+          handleTeamChatEvent(n);
+          return;
+        }
+        if (n.type === 'team_chat_typing') {
+          handleTypingEvent(n);
+          return;
+        }
+        processNotification(n);
+        if (n.type === 'team_invite') loadInvites();
+        if (n.type === 'join_approved' || n.type === 'join_rejected') setTimeout(() => location.reload(), 900);
+      } catch(err) {}
+    };
+    es.onerror = () => { es.close(); if (r++ < 3) setTimeout(conn, 5000); };
+    es.addEventListener('ping', () => { r = 0; updateOnline(); });
+  }
+  conn();
+
+  loadInvites();
+  loadTeamRanking();
+  loadMemberStats();
+  updateOnline();
+  setInterval(updateOnline, 10000);
+});
+
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+/* ============================================
+   USERS.CSS — Kullanıcı Listesi Sayfası
+   ============================================ */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: calc(100vh - 65px);
+  padding: 30px 50px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.users-table th {
+  text-align: left;
+  padding: 15px;
+  color: var(--blue);
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 1px;
+}
+
+.users-table td {
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 14px;
+}
+
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+  transition: 0.2s;
+}
+
+.user-area:hover {
+  transform: translateX(8px);
+}
+
+.table-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--blue);
+  object-fit: cover;
+}
+
+.table-letter-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  color: white;
+  text-transform: uppercase;
+  border: 2px solid var(--blue);
+}
+
+.rank-cell {
+  width: 60px;
+  font-weight: 900;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* Sıralama Renkleri */
+.row-rank-1 {
+  background: rgba(251, 191, 36, 0.05);
+  border-left: 4px solid #fbbf24;
+}
+
+.row-rank-1 .rank-cell {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  font-size: 24px;
+}
+
+.row-rank-1 .points-val {
+  color: #fbbf24;
+}
+
+.row-rank-2 {
+  background: rgba(148, 163, 184, 0.05);
+  border-left: 4px solid #94a3b8;
+}
+
+.row-rank-2 .rank-cell {
+  color: #94a3b8;
+}
+
+.row-rank-3 {
+  background: rgba(180, 83, 9, 0.05);
+  border-left: 4px solid #b45309;
+}
+
+.row-rank-3 .rank-cell {
+  color: #b45309;
+}
+
+.solved-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.points-val {
+  color: var(--blue);
+  font-weight: 900;
+  font-size: 16px;
+}

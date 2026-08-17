@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= profile.username %> | Identity</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .profile-page{flex:1;overflow-y:auto;padding:26px;}
+    .profile-wrap{width:min(1320px,100%);display:flex;flex-direction:column;gap:18px;}
+    .profile-hero{position:relative;overflow:hidden;border:1px solid rgba(56,189,248,0.14);border-radius:10px;background:linear-gradient(135deg,rgba(17,24,39,0.96),rgba(13,18,36,0.9));padding:22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,420px);gap:22px;align-items:end;}
+    .profile-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(56,189,248,0.08),transparent 42%,rgba(16,185,129,0.07));pointer-events:none;}
+    .profile-hero>*{position:relative;z-index:1;}
+    .profile-identity{display:flex;align-items:center;gap:18px;min-width:0;}
+    .profile-avatar,.profile-letter{width:92px;height:92px;border-radius:50%;border:3px solid #10b981;box-shadow:0 0 28px rgba(16,185,129,0.25);flex-shrink:0;}
+    .profile-avatar{object-fit:cover;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+    .profile-avatar:hover{transform:scale(1.04);box-shadow:0 0 36px rgba(16,185,129,0.42);}
+    .profile-letter{display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#fff;}
+    .profile-kicker,.panel-label{font-size:9px;font-weight:800;color:#38bdf8;letter-spacing:2px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;}
+    .profile-name{font-size:28px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;letter-spacing:0;line-height:1.1;margin:7px 0;}
+    .profile-sub{font-size:13px;color:#94a3b8;line-height:1.55;max-width:660px;}
+    .online-pill,.role-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);white-space:nowrap;}
+    .online-dot{width:7px;height:7px;border-radius:50%;background:#475569;display:inline-block;flex-shrink:0;}
+    .online-dot.on{background:#10b981;box-shadow:0 0 7px #10b981;}
+    .profile-hero-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;}
+    .profile-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:9px 14px;border-radius:8px;border:1px solid transparent;font-size:11px;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;white-space:nowrap;}
+    .profile-btn .material-icons{font-size:15px;}
+    .profile-btn.primary{background:rgba(56,189,248,0.14);border-color:rgba(56,189,248,0.38);color:#38bdf8;}
+    .profile-btn.primary:hover{background:rgba(56,189,248,0.22);}
+    .profile-btn.success{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.28);color:#10b981;}
+    .profile-btn.purple{background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.28);color:#a78bfa;}
+    .profile-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .profile-stat{background:rgba(8,12,24,0.58);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:13px;}
+    .profile-stat strong{display:block;font-size:20px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;line-height:1;}
+    .profile-stat span{display:block;margin-top:7px;font-size:8px;font-weight:800;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;}
+    .profile-grid{display:grid;grid-template-columns:minmax(300px,.86fr) minmax(520px,1.45fr);gap:18px;align-items:stretch;}
+    .profile-stack{display:flex;flex-direction:column;gap:14px;min-width:0;}
+    .profile-balance-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch;}
+    .profile-balance-row.single{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .profile-balance-row>.profile-panel{height:100%;}
+    .profile-full-flow{display:flex;flex-direction:column;gap:14px;}
+    .profile-panel{background:rgba(17,24,39,.78);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:18px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.18);}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+    .panel-title{font-size:15px;font-weight:900;color:#f8fafc;line-height:1.25;}
+    .panel-sub{font-size:11px;color:#64748b;margin-top:4px;line-height:1.45;}
+    .bio-text{font-size:13px;color:#94a3b8;line-height:1.65;margin:0;}
+    .metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .metric-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:13px;}
+    .metric-card strong{display:block;font-size:20px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#f8fafc;}
+    .metric-card span{display:block;margin-top:6px;font-size:8px;font-weight:800;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+    .level-bar{height:6px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;}
+    .level-fill{height:100%;background:linear-gradient(90deg,#38bdf8,#a78bfa);border-radius:6px;transition:width 1s ease;}
+    .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:8px;}
+    .badge-btn{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;transition:all .2s;min-width:0;}
+    .chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+    .chart-panel{min-height:285px;display:flex;flex-direction:column;}
+    .chart-box{flex:1;display:flex;align-items:center;justify-content:center;min-height:210px;}
+    .profile-charts-stack{height:100%;}
+    .profile-charts-stack .chart-grid{height:100%;grid-template-rows:repeat(2,minmax(0,1fr));}
+    .profile-charts-stack .chart-panel{min-height:0;}
+    .profile-charts-stack .chart-box{min-height:0;}
+    .progress-list{display:flex;flex-direction:column;gap:16px;}
+    .progress-row-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+    .progress-name{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#cbd5e1;}
+    .color-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .progress-track{height:6px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.07);}
+    .progress-fill{height:100%;border-radius:6px;width:0%;transition:width 1s ease;}
+    .insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;}
+    .insight-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:13px;}
+    .insight-card strong{display:block;font-size:18px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .insight-card span{display:block;margin-top:7px;font-size:8px;font-weight:800;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+    .insight-strip{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px;background:rgba(56,189,248,.045);border:1px solid rgba(56,189,248,.12);border-radius:8px;}
+    .insight-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.18);color:#38bdf8;flex-shrink:0;}
+    .mini-split-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+    .mini-split-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px;}
+    .mini-split-card strong{display:block;font-size:18px;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1;color:#f8fafc;}
+    .mini-split-card span{display:block;margin-top:7px;font-size:8px;font-weight:800;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+    .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+    .skill-card,.solve-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px;}
+    .skill-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;}
+    .skill-name{font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .skill-count{font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+    .solves-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;}
+    .solve-card{display:flex;align-items:center;gap:9px;min-width:0;}
+    .solve-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,.1);background:rgba(16,185,129,.08);}
+    .solve-title{font-size:12px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .empty-state{border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:22px;text-align:center;color:#64748b;font-size:12px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.02);}
+    .cal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;}
+    .cal-select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:white;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;outline:none;font-family:'Inter',sans-serif;}
+    .badge-panel,.pref-panel{padding:14px;}
+    .badge-panel .panel-head{margin-bottom:10px;}
+    .pref-panel{border-color:rgba(251,191,36,.14);}
+    .pref-sound-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:10px;}
+    .pref-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+    .toggle-switch{position:relative;display:inline-block;width:44px;height:22px;}
+    .toggle-switch input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);transition:.3s;border-radius:22px;}
+    .toggle-slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:white;transition:.3s;border-radius:50%;}
+    input:checked+.toggle-slider{background:#10b981;border-color:#10b981;}
+    input:checked+.toggle-slider:before{transform:translateX(22px);}
+    .pref-check{display:flex;align-items:center;cursor:pointer;user-select:none;}
+    .pref-check input{display:none;}
+    .pref-label{display:flex;align-items:center;justify-content:center;gap:7px;min-height:34px;padding:8px 9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:7px;width:100%;transition:all 0.2s;font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;}
+    .pref-check input:checked+.pref-label{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3);color:#10b981;}
+    @media (max-width:1180px){.profile-hero,.profile-grid,.profile-balance-row{grid-template-columns:1fr}.profile-stat-grid,.chart-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.profile-charts-stack,.profile-charts-stack .chart-grid{height:auto}.profile-charts-stack .chart-grid{grid-template-rows:none}}
+    @media (max-width:720px){.profile-page{padding:16px}.profile-identity{align-items:flex-start;flex-direction:column}.profile-name{font-size:22px}.profile-stat-grid,.metric-grid,.chart-grid{grid-template-columns:1fr}.badge-grid{grid-template-columns:repeat(5,1fr)}.pref-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cal-header{flex-direction:column}.cal-select,.profile-btn{width:100%;}.profile-hero-actions{align-items:stretch;flex-direction:column}}
+  </style>
+</head>
+<body>
+<%
+  const stringToColor = (str) => {
+    let hash = 0;
+    for(let i=0;i<str.length;i++) hash = str.charCodeAt(i)+((hash<<5)-hash);
+    const c = (hash&0x00FFFFFF).toString(16).toUpperCase();
+    return '#'+'00000'.substring(0,6-c.length)+c;
+  };
+
+  // Puan hesapla
+  let profilePoints = 0;
+  (profile.solved || []).forEach(id => {
+    if (labs[id])          profilePoints += labs[id].points || 0;
+    if (ctfChallenges[id]) profilePoints += ctfChallenges[id].points || 0;
+    Object.values(scenarios || {}).forEach(s => {
+      const task = (s.tasks || []).find(t => `${s.id}_task_${t.id}` === id);
+      if (task) profilePoints += task.points || 0;
+    });
+  });
+
+  // Level sistemi: max 10 level, dinamik max puana göre
+  const MAX_LEVEL = 10;
+  const PTS_PER_LEVEL = Math.ceil(maxPoints / MAX_LEVEL); // Dinamik — yeni görev eklenince otomatik güncellenir
+  const profileLevel   = Math.min(MAX_LEVEL, Math.floor(profilePoints / PTS_PER_LEVEL) + 1);
+  // Seviye 10'da bar tamamen dolu
+  const levelProgress  = profileLevel >= MAX_LEVEL ? PTS_PER_LEVEL : profilePoints % PTS_PER_LEVEL;
+  const levelPct       = profileLevel >= MAX_LEVEL ? 100 : Math.round((levelProgress / PTS_PER_LEVEL) * 100);
+  const nextLevelPts   = profileLevel >= MAX_LEVEL ? 0 : PTS_PER_LEVEL - levelProgress;
+
+  // Rank unvanı — 10 levele yayıldı
+  const rankTitle = profileLevel >= 10 ? 'ELİT MİMAR'      :
+                    profileLevel >= 8  ? 'UZMAN OPERATÖR'   :
+                    profileLevel >= 6  ? 'KIDEMLİ OPERATÖR' :
+                    profileLevel >= 4  ? 'OPERATÖR'         :
+                    profileLevel >= 2  ? 'ÇAYLAK+'          :
+                                         'ÇAYLAK';
+
+  // İlk kan rozetleri — bu kullanıcının ilk çözdüğü görevler
+  const myFirstBloods = Object.entries(firstblood || {}).filter(([id, fb]) => fb.username === profile.username);
+
+  // Aktivite takvimi — solvedDates'ten gerçek tarihler
+  const activityMap = {}; // { 'YYYY-MM-DD': [{ id, title }] }
+  
+  // Tüm görev başlıklarını bir map'e al
+  const challengeTitles = {};
+  Object.values(labs || {}).forEach(l => { challengeTitles[l.id] = l.title; });
+  Object.values(ctfChallenges || {}).forEach(c => { challengeTitles[c.id] = c.title; });
+  Object.values(scenarios || {}).forEach(s => {
+    (s.tasks || []).forEach(t => {
+      challengeTitles[`${s.id}_task_${t.id}`] = `${s.title}: ${t.question ? t.question.substring(0,25) : 'Görev'}`;
+    });
+  });
+
+  // solvedDates'ten aktivite map'i oluştur
+  Object.entries(solvedDates || {}).forEach(([id, dateStr]) => {
+    const d = dateStr.substring(0, 10);
+    if (!activityMap[d]) activityMap[d] = [];
+    activityMap[d].push({ id, title: challengeTitles[id] || id });
+  });
+  
+  // solvedDates'te olmayan ama firstblood'da olan çözümler için de ekle
+  Object.entries(firstblood || {}).forEach(([id, fb]) => {
+    if (fb.username === profile.username && fb.solvedAt) {
+      const d = fb.solvedAt.substring(0, 10);
+      if (!activityMap[d]) activityMap[d] = [];
+      if (!activityMap[d].find(x => x.id === id)) {
+        activityMap[d].push({ id, title: challengeTitles[id] || id });
+      }
+    }
+  });
+  
+  // JS'e geçirmek için sayı map'i
+  const activityCountMap = {};
+  const activityTitleMap = {};
+  Object.entries(activityMap).forEach(([d, items]) => {
+    activityCountMap[d] = items.length;
+    activityTitleMap[d] = items.map(i => i.title).join(', ');
+  });
+
+  const solvedCount = profile.solved ? profile.solved.length : 0;
+  const totalCtf = Object.values(ctfChallenges || {}).length;
+  const totalLabs = Object.values(labs || {}).length;
+  const totalScenarioTasks = Object.values(scenarios || {}).reduce((sum, s) => sum + ((s.tasks || []).length), 0);
+  const totalAvailable = totalCtf + totalLabs + totalScenarioTasks;
+  const completionPct = totalAvailable ? Math.round((solvedCount / totalAvailable) * 100) : 0;
+  const activeDays = Object.keys(activityCountMap).length;
+  const firstBloodCount = myFirstBloods.length;
+  const latestActivityDate = Object.keys(activityCountMap).sort().pop();
+  const latestActivityLabel = latestActivityDate ? new Date(latestActivityDate).toLocaleDateString('tr-TR', { day:'2-digit', month:'short', year:'numeric' }) : 'Yok';
+%>
+
+<!-- Avatar Büyük Görüntü Modal -->
+<div id="avatarModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.92);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(20px);"
+  onclick="if(event.target===this)this.style.display='none'">
+  <div style="position:relative;text-align:center;">
+    <button onclick="document.getElementById('avatarModal').style.display='none'"
+      style="position:absolute;top:-40px;right:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;width:32px;height:32px;color:#94a3b8;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+    <img id="avatarModalImg" src="" alt=""
+      style="max-width:min(480px,90vw);max-height:min(480px,80vh);border-radius:50%;border:4px solid #10b981;box-shadow:0 0 60px rgba(16,185,129,0.4);object-fit:cover;display:block;">
+    <div id="avatarModalName" style="margin-top:16px;font-size:14px;font-weight:700;color:white;font-family:'JetBrains Mono',monospace;letter-spacing:1px;"></div>
+  </div>
+</div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
+  <div style="width:380px;padding:32px;background:#111827;border:1px solid rgba(56,189,248,0.3);border-radius:14px;">
+    <div style="font-size:10px;font-weight:700;color:#38bdf8;letter-spacing:3px;font-family:'JetBrains Mono',monospace;margin-bottom:20px;">PROFİL AYARLARI</div>
+    <label style="display:block;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;">AVATAR</label>
+    <input type="file" id="avatarFile" accept=".png,.jpg,.jpeg" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px;color:#94a3b8;font-size:12px;margin-bottom:16px;">
+    <label style="display:block;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;">BİYOGRAFİ</label>
+    <textarea id="newBio" style="width:100%;height:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px;color:#cbd5e1;font-size:13px;resize:none;outline:none;box-sizing:border-box;margin-bottom:20px;"><%= profile.bio %></textarea>
+    <button onclick="saveAll()" style="width:100%;padding:12px;background:#38bdf8;border:none;border-radius:8px;color:#0d1117;font-weight:800;cursor:pointer;font-size:13px;margin-bottom:8px;">KAYDET</button>
+    <button onclick="document.getElementById('editModal').style.display='none'" style="width:100%;padding:10px;background:transparent;border:none;color:#475569;cursor:pointer;font-size:12px;">İptal</button>
+  </div>
+</div>
+
+<!-- Aktivite Günü Modal -->
+<div id="changePwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(12px);"
+  onclick="if(event.target===this)this.style.display='none'">
+  <div style="width:380px;padding:32px;background:rgba(13,18,36,0.98);border:1px solid rgba(167,139,250,0.3);border-radius:16px;position:relative;">
+    <button onclick="document.getElementById('changePwModal').style.display='none'"
+      style="position:absolute;top:12px;right:14px;background:none;border:none;color:#ef4444;font-size:20px;cursor:pointer;line-height:1;">×</button>
+    <div style="font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:3px;font-family:'JetBrains Mono',monospace;margin-bottom:20px;">ŞİFRE DEĞİŞTİR</div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;">MEVCUT ŞİFRE</label>
+      <input type="password" id="pwCurrent" placeholder="Mevcut şifreniz"
+        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:#cbd5e1;font-size:13px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='rgba(167,139,250,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;">YENİ ŞİFRE</label>
+      <input type="password" id="pwNew" placeholder="Yeni şifre (min. 4 karakter)"
+        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:#cbd5e1;font-size:13px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='rgba(167,139,250,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;">YENİ ŞİFRE TEKRAR</label>
+      <input type="password" id="pwConfirm" placeholder="Yeni şifreyi tekrar girin"
+        style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;color:#cbd5e1;font-size:13px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='rgba(167,139,250,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
+    </div>
+    <div id="pwMsg" style="display:none;padding:8px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;"></div>
+    <button onclick="submitChangePassword()"
+      style="width:100%;padding:11px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.4);border-radius:8px;color:#a78bfa;font-size:11px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:6px;"
+      onmouseover="this.style.background='rgba(167,139,250,0.25)'" onmouseout="this.style.background='rgba(167,139,250,0.15)'">
+      <span class="material-icons" style="font-size:14px;">lock_reset</span> ŞİFREYİ GÜNCELLE
+    </button>
+  </div>
+</div>
+
+<!-- Aktivite Günü Modal -->
+<div id="dayModal" style="display:none;position:fixed;inset:0;background:rgba(8,12,24,0.88);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(16px);" onclick="if(event.target===this)this.style.display='none'">
+  <div style="max-width:480px;width:92%;background:#0a0f1e;border:1px solid rgba(16,185,129,0.3);border-radius:14px;overflow:hidden;animation:fadeInUp 0.3s ease;position:relative;">
+    <!-- Terminal başlık çubuğu -->
+    <div style="background:rgba(16,185,129,0.08);border-bottom:1px solid rgba(16,185,129,0.2);padding:10px 16px;display:flex;align-items:center;gap:8px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#ef4444;"></div>
+      <div style="width:10px;height:10px;border-radius:50%;background:#fbbf24;"></div>
+      <div style="width:10px;height:10px;border-radius:50%;background:#10b981;"></div>
+      <span id="dayModalTitle" style="font-size:11px;color:#10b981;font-family:'JetBrains Mono',monospace;margin-left:8px;letter-spacing:1px;"></span>
+      <button onclick="document.getElementById('dayModal').style.display='none'" style="margin-left:auto;background:none;border:none;color:#475569;cursor:pointer;font-size:16px;line-height:1;">×</button>
+    </div>
+    <!-- İçerik -->
+    <div style="padding:20px 20px 24px;">
+      <div style="font-size:9px;color:#10b981;font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:16px;">TAMAMLANAN_GÖREVLER</div>
+      <div id="dayModalContent" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+    <!-- Köşe çizgileri -->
+    <div style="position:absolute;top:8px;right:8px;width:12px;height:12px;border-top:1px solid rgba(16,185,129,0.4);border-right:1px solid rgba(16,185,129,0.4);border-radius:0 2px 0 0;"></div>
+    <div style="position:absolute;bottom:8px;left:8px;width:12px;height:12px;border-bottom:1px solid rgba(16,185,129,0.4);border-left:1px solid rgba(16,185,129,0.4);border-radius:0 0 0 2px;"></div>
+  </div>
+</div>
+<div id="badgeModal" style="display:none;position:fixed;inset:0;background:rgba(8,12,24,0.88);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(16px);" onclick="if(event.target===this)this.style.display='none'">
+  <div id="badgeModalInner" style="max-width:380px;width:90%;background:#0d1224;border-radius:20px;padding:40px 32px;text-align:center;position:relative;animation:fadeInUp 0.3s ease;max-height:85vh;overflow-y:auto;">
+    <button onclick="document.getElementById('badgeModal').style.display='none'" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;width:28px;height:28px;color:#94a3b8;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">×</button>
+    <div id="badgeModalIcon" style="font-size:72px;margin-bottom:16px;"></div>
+    <div id="badgeModalName" style="font-size:14px;font-weight:800;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:10px;"></div>
+    <div id="badgeModalDesc" style="font-size:13px;color:#94a3b8;line-height:1.6;"></div>
+    <!-- Köşe çizgileri -->
+    <div id="badgeModalCornerTL" style="position:absolute;top:12px;left:12px;width:16px;height:16px;border-radius:2px 0 0 0;opacity:0.6;"></div>
+    <div id="badgeModalCornerBR" style="position:absolute;bottom:12px;right:12px;width:16px;height:16px;border-radius:0 0 2px 0;opacity:0.6;"></div>
+  </div>
+</div>
+
+<!-- Aktivite Takvimi Modal -->
+<div id="activityModal" style="display:none;position:fixed;inset:0;background:rgba(8,12,24,0.92);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(16px);" onclick="if(event.target===this)this.style.display='none'">
+  <div style="max-width:900px;width:95%;background:#0d1224;border:1px solid rgba(56,189,248,0.15);border-radius:16px;padding:32px;position:relative;animation:fadeInUp 0.3s ease;">
+    <button onclick="document.getElementById('activityModal').style.display='none'" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;width:28px;height:28px;color:#94a3b8;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">×</button>
+    <div style="font-size:10px;font-weight:700;color:#475569;letter-spacing:3px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">AKTİVİTE TAKVİMİ</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:20px;">Aktivite, tamamlanan görev ve senaryolarla ölçülür.</div>
+    <!-- Ay etiketleri -->
+    <div id="calMonthLabels" style="display:flex;gap:2px;margin-bottom:4px;padding-left:28px;"></div>
+    <!-- Grid -->
+    <div style="display:flex;gap:3px;">
+      <div style="display:flex;flex-direction:column;gap:2px;margin-right:4px;padding-top:12px;">
+        <div style="font-size:8px;color:#475569;font-family:'JetBrains Mono',monospace;height:10px;line-height:10px;">Pzt</div>
+        <div style="height:10px;"></div>
+        <div style="font-size:8px;color:#475569;font-family:'JetBrains Mono',monospace;height:10px;line-height:10px;">Çar</div>
+        <div style="height:10px;"></div>
+        <div style="font-size:8px;color:#475569;font-family:'JetBrains Mono',monospace;height:10px;line-height:10px;">Cum</div>
+        <div style="height:10px;"></div>
+        <div style="font-size:8px;color:#475569;font-family:'JetBrains Mono',monospace;height:10px;line-height:10px;">Paz</div>
+      </div>
+      <div id="activityCalendar" style="display:flex;gap:2px;flex:1;overflow:hidden;"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;">
+      <span>Az</span>
+      <div style="width:10px;height:10px;background:#1e293b;border-radius:2px;"></div>
+      <div style="width:10px;height:10px;background:rgba(16,185,129,0.3);border-radius:2px;"></div>
+      <div style="width:10px;height:10px;background:rgba(16,185,129,0.6);border-radius:2px;"></div>
+      <div style="width:10px;height:10px;background:#10b981;border-radius:2px;"></div>
+      <span>Çok</span>
+      <span style="margin-left:auto;color:#38bdf8;"><%= Object.keys(activityCountMap).length %> aktif gün</span>
+    </div>
+  </div>
+</div>
+
+<div class="dash-shell">
+  <%- include('partials/sidebar-only', { currentPage: 'profile' }) %>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">KİMLİK // <span><%= profile.username.toUpperCase() %></span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <div class="profile-page page-enter">
+      <div class="profile-wrap">
+        <section class="profile-hero">
+          <div class="profile-identity">
+            <% if(profile.avatar) { %>
+              <img src="<%= profile.avatar %>" class="profile-avatar" onclick="showAvatarModal('<%= profile.avatar %>','<%= profile.username %>')">
+            <% } else { %>
+              <div class="profile-letter" style="background:<%= stringToColor(profile.username) %>;"><%= profile.username[0].toUpperCase() %></div>
+            <% } %>
+            <div style="min-width:0;">
+              <div class="profile-kicker">Operatör Profili</div>
+              <div class="profile-name"><%= profile.username.toUpperCase() %></div>
+              <div class="profile-sub"><%= profile.bio || 'Bu operatör sessizliği tercih ediyor.' %></div>
+              <div class="profile-hero-actions">
+                <span class="online-pill" style="color:<%= isOnline ? '#10b981' : '#64748b' %>;">
+                  <span class="online-dot <%= isOnline ? 'on' : '' %>"></span><%= isOnline ? 'Çevrimiçi' : 'Çevrimdışı' %>
+                </span>
+                <span class="role-pill" style="color:#a78bfa;border-color:rgba(167,139,250,.28);background:rgba(167,139,250,.08);">Seviye <%= profileLevel %> · <%= rankTitle %></span>
+                <% if(user.username === profile.username) { %>
+                <button onclick="document.getElementById('editModal').style.display='flex'" class="profile-btn primary"><span class="material-icons">edit</span>Profili Düzenle</button>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-stat-grid">
+            <div class="profile-stat"><strong id="profilePoints"><%= profilePoints %></strong><span>Toplam Puan</span></div>
+            <div class="profile-stat"><strong><%= completionPct %>%</strong><span>Tamamlanma</span></div>
+            <div class="profile-stat"><strong id="profileRank">—</strong><span>Global Sıra</span></div>
+            <div class="profile-stat"><strong><%= latestActivityLabel %></strong><span>Son Aktivite</span></div>
+          </div>
+        </section>
+
+        <div class="profile-grid">
+          <div class="profile-stack">
+            <div class="profile-panel badge-panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-label">Performans Özeti</div>
+                  <div class="panel-sub">Puan, çözüm ve rozet metrikleri</div>
+                </div>
+              </div>
+              <div class="metric-grid">
+                <div class="metric-card"><strong style="color:#10b981;"><%= solvedCount %></strong><span>Çözülen</span></div>
+                <div class="metric-card"><strong style="color:#a78bfa;"><%= badges.length %></strong><span>Rozet</span></div>
+                <div class="metric-card"><strong style="color:#ef4444;"><%= firstBloodCount %></strong><span>İlk Kan</span></div>
+                <div class="metric-card"><strong style="color:#fbbf24;"><%= activeDays %></strong><span>Aktif Gün</span></div>
+              </div>
+              <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;">
+                  <div>
+                    <div class="panel-title">Seviye <%= profileLevel %></div>
+                    <div class="panel-sub"><%= rankTitle %></div>
+                  </div>
+                  <span class="panel-label" style="color:#64748b;">
+                    <% if(profileLevel >= 10) { %>MAX<% } else { %><%= levelProgress %>/<%= PTS_PER_LEVEL %><% } %>
+                  </span>
+                </div>
+                <div class="level-bar"><div class="level-fill" style="width:<%= levelPct %>%;"></div></div>
+                <div class="panel-sub" style="text-align:right;margin-top:6px;">
+                  <% if(profileLevel >= 10) { %>Maksimum seviyede<% } else { %><%= nextLevelPts %> puan sonra Seviye <%= profileLevel + 1 %><% } %>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-panel">
+              <div class="panel-head">
+                <div>
+                  <div class="panel-label">Rozetler</div>
+                  <div class="panel-sub"><%= badges.length %> kazanılmış rozet</div>
+                </div>
+              </div>
+              <% if(badges.length === 0) { %>
+                <div class="empty-state">Henüz rozet yok</div>
+              <% } else { %>
+              <div class="badge-grid">
+                <% badges.forEach((b, bi) => { %>
+                  <button onclick="showBadgeModal(<%= bi %>)" class="badge-btn" title="<%= b.name %>"
+                    style="background:<%= b.color %>15;border:2px solid <%= b.color %>40;"
+                    onmouseover="this.style.transform='scale(1.08)';this.style.borderColor='<%= b.color %>';this.style.background='<%= b.color %>28';this.style.boxShadow='0 0 18px <%= b.color %>44';"
+                    onmouseout="this.style.transform='scale(1)';this.style.borderColor='<%= b.color %>40';this.style.background='<%= b.color %>15';this.style.boxShadow='none';">
+                    <%= b.icon || '🏅' %>
+                  </button>
+                <% }) %>
+              </div>
+              <% } %>
+            </div>
+
+            <div class="profile-panel">
+              <div class="panel-head" style="margin-bottom:10px;">
+                <div>
+                  <div class="panel-label">İçerik Dağılımı</div>
+                  <div class="panel-sub">Tamamlanan görevlerin bölüm kırılımı</div>
+                </div>
+              </div>
+              <div class="mini-split-grid">
+                <div class="mini-split-card">
+                  <strong style="color:#10b981;"><%= Object.values(labs || {}).filter(l => (profile.solved || []).includes(l.id)).length %></strong>
+                  <span>Lab</span>
+                </div>
+                <div class="mini-split-card">
+                  <strong style="color:#38bdf8;"><%= Object.values(ctfChallenges || {}).filter(c => (profile.solved || []).includes(c.id)).length %></strong>
+                  <span>CTF</span>
+                </div>
+                <div class="mini-split-card">
+                  <strong style="color:#a78bfa;"><%= stats['Senaryolar'] ? stats['Senaryolar'].solved : 0 %></strong>
+                  <span>Senaryo</span>
+                </div>
+              </div>
+              <div class="insight-strip" style="margin-top:10px;border-color:rgba(16,185,129,.12);background:rgba(16,185,129,.045);">
+                <div class="insight-icon" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.18);color:#10b981;"><span class="material-icons">analytics</span></div>
+                <div style="min-width:0;">
+                  <div style="font-size:12px;font-weight:800;color:#f8fafc;">Toplam çözüm dağılımı</div>
+                  <div class="panel-sub"><%= solvedCount %> çözüm, içeriklerin <%= completionPct %>'ini kapsıyor.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-panel">
+              <div class="panel-head" style="margin-bottom:10px;">
+                <div>
+                  <div class="panel-label">Operatör Durumu</div>
+                  <div class="panel-sub">Aktivite ve ilerleme özeti</div>
+                </div>
+              </div>
+              <div class="mini-split-grid">
+                <div class="mini-split-card">
+                  <strong style="color:#fbbf24;"><%= activeDays %></strong>
+                  <span>Aktif Gün</span>
+                </div>
+                <div class="mini-split-card">
+                  <strong style="color:#38bdf8;"><%= latestActivityLabel %></strong>
+                  <span>Son Aktivite</span>
+                </div>
+                <div class="mini-split-card">
+                  <strong style="color:#a78bfa;"><%= profileLevel >= 10 ? 0 : nextLevelPts %></strong>
+                  <span>Kalan Puan</span>
+                </div>
+              </div>
+              <div class="insight-strip" style="margin-top:10px;border-color:rgba(56,189,248,.14);background:rgba(56,189,248,.045);">
+                <div class="insight-icon"><span class="material-icons">schedule</span></div>
+                <div style="min-width:0;">
+                  <div style="font-size:12px;font-weight:800;color:#f8fafc;">Aktif profil görünümü</div>
+                  <div class="panel-sub">
+                    <% if(profileLevel >= 10) { %>
+                      Maksimum seviyede, tüm ilerleme tamamlanmış görünüyor.
+                    <% } else { %>
+                      Son aktivite <%= latestActivityLabel %>, bir sonraki seviye için <%= nextLevelPts %> puan gerekiyor.
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        </div>
+
+        <!-- Sağ: Radar + Kategoriler + Çözülenler -->
+        <div class="profile-stack profile-charts-stack">
+
+          <!-- 4 İstatistik Kartı -->
+          <div class="chart-grid">
+
+            <!-- 1. CTF İstatistikleri -->
+            <div class="profile-panel chart-panel">
+              <div class="panel-title">CTF İstatistikleri</div>
+              <div class="panel-sub">Kategori bazlı CTF hakimiyeti</div>
+              <div class="chart-box"><canvas id="ctfRadar" style="max-height:220px;"></canvas></div>
+            </div>
+
+            <!-- 2. Lab İstatistikleri -->
+            <div class="profile-panel chart-panel">
+              <div class="panel-title">Lab İstatistikleri</div>
+              <div class="panel-sub">Zorluk seviyesine göre lab ilerlemesi</div>
+              <div class="chart-box"><canvas id="labRadar" style="max-height:220px;"></canvas></div>
+            </div>
+
+            <!-- 3. Senaryo İstatistikleri — Radar -->
+            <div class="profile-panel chart-panel">
+              <div class="panel-title">Senaryo İstatistikleri</div>
+              <div class="panel-sub">Operasyon senaryolarındaki ilerleme</div>
+              <div class="chart-box">
+                <canvas id="sceRadar" style="max-height:220px;max-width:220px;"></canvas>
+              </div>
+            </div>
+
+            <!-- 4. Toplam Aktivite İlerlemesi — Progress Bars -->
+            <div class="profile-panel chart-panel">
+              <div>
+                <div class="panel-title">Aktivite İlerlemesi</div>
+                <div class="panel-sub">Her bölüm için tamamlama oranı</div>
+              </div>
+
+              <!-- CTF -->
+              <div class="progress-list" style="margin-top:18px;">
+                <div>
+                  <div class="progress-row-head">
+                    <div class="progress-name"><span class="color-dot" style="background:#38bdf8;box-shadow:0 0 6px rgba(56,189,248,.6);"></span>CTF</div>
+                    <span id="actCtfPct" style="font-size:11px;font-weight:800;color:#38bdf8;font-family:'JetBrains Mono',monospace;">—%</span>
+                  </div>
+                  <div class="progress-track" style="background:rgba(56,189,248,.08);"><div id="actCtfBar" class="progress-fill" style="background:linear-gradient(90deg,#38bdf8,#7dd3fc);box-shadow:0 0 8px rgba(56,189,248,.4);"></div></div>
+                  <div id="actCtfSub" class="panel-sub">— / — tamamlandı</div>
+                </div>
+
+              <!-- Lab -->
+                <div>
+                  <div class="progress-row-head">
+                    <div class="progress-name"><span class="color-dot" style="background:#10b981;box-shadow:0 0 6px rgba(16,185,129,.6);"></span>Lab</div>
+                    <span id="actLabPct" style="font-size:11px;font-weight:800;color:#10b981;font-family:'JetBrains Mono',monospace;">—%</span>
+                  </div>
+                  <div class="progress-track" style="background:rgba(16,185,129,.08);"><div id="actLabBar" class="progress-fill" style="background:linear-gradient(90deg,#10b981,#6ee7b7);box-shadow:0 0 8px rgba(16,185,129,.4);"></div></div>
+                  <div id="actLabSub" class="panel-sub">— / — tamamlandı</div>
+                </div>
+
+              <!-- Senaryo -->
+                <div>
+                  <div class="progress-row-head">
+                    <div class="progress-name"><span class="color-dot" style="background:#a78bfa;box-shadow:0 0 6px rgba(167,139,250,.6);"></span>Senaryo</div>
+                    <span id="actScePct" style="font-size:11px;font-weight:800;color:#a78bfa;font-family:'JetBrains Mono',monospace;">—%</span>
+                  </div>
+                  <div class="progress-track" style="background:rgba(167,139,250,.08);"><div id="actSceBar" class="progress-fill" style="background:linear-gradient(90deg,#a78bfa,#c4b5fd);box-shadow:0 0 8px rgba(167,139,250,.4);"></div></div>
+                  <div id="actSceSub" class="panel-sub">— / — tamamlandı</div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+        </div>
+
+        <div class="profile-balance-row <%= user.username === profile.username ? '' : 'single' %>">
+          <div class="profile-panel">
+            <div class="panel-head" style="margin-bottom:10px;">
+              <div>
+                <div class="panel-label">Operator Bio</div>
+                <div class="panel-sub">Profil açıklaması ve kısa kimlik notu</div>
+              </div>
+            </div>
+            <p class="bio-text"><%= profile.bio || 'Bu operatör sessizliği tercih ediyor.' %></p>
+          </div>
+
+          <% if(user.username === profile.username) { %>
+          <div class="profile-panel pref-panel">
+            <div class="panel-head" style="margin-bottom:10px;">
+              <div>
+                <div class="panel-label" style="color:#fbbf24;">Notification Prefs</div>
+                <div class="panel-sub">Bildirim tipi ve ses ayarları</div>
+              </div>
+            </div>
+            <div class="pref-sound-row">
+              <span style="font-size:12px;font-weight:700;color:#cbd5e1;">Bildirim Sesi</span>
+              <label class="toggle-switch"><input type="checkbox" id="soundPreferenceToggle"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="pref-grid">
+              <label class="pref-check"><input type="checkbox" id="prefInfo" checked><span class="pref-label">ℹ️ Bilgi</span></label>
+              <label class="pref-check"><input type="checkbox" id="prefSuccess" checked><span class="pref-label">✅ Başarı</span></label>
+              <label class="pref-check"><input type="checkbox" id="prefWarning" checked><span class="pref-label">⚠️ Uyarı</span></label>
+              <label class="pref-check"><input type="checkbox" id="prefDanger" checked><span class="pref-label">🚨 Kritik</span></label>
+            </div>
+            <button onclick="saveNotificationPreferences()" class="profile-btn success" style="width:100%;">Kaydet</button>
+            <div id="prefStatus" style="display:none;margin-top:8px;font-size:11px;text-align:center;color:#10b981;font-family:'JetBrains Mono',monospace;"></div>
+            <button onclick="document.getElementById('changePwModal').style.display='flex'" class="profile-btn purple" style="width:100%;margin-top:8px;">
+              <span class="material-icons">lock_reset</span>Şifremi Değiştir
+            </button>
+          </div>
+          <% } %>
+
+          <div class="profile-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-label">Operasyon Özeti</div>
+                <div class="panel-sub">Profilin genel performans ve aktivite durumu</div>
+              </div>
+              <span class="role-pill" style="color:#10b981;border-color:rgba(16,185,129,.28);background:rgba(16,185,129,.08);"><%= completionPct %>%</span>
+            </div>
+            <div class="insight-grid">
+              <div class="insight-card"><strong style="color:#38bdf8;"><%= totalAvailable %></strong><span>Toplam İçerik</span></div>
+              <div class="insight-card"><strong style="color:#10b981;"><%= solvedCount %></strong><span>Tamamlanan</span></div>
+              <div class="insight-card"><strong style="color:#ef4444;"><%= firstBloodCount %></strong><span>İlk Kan</span></div>
+              <div class="insight-card"><strong style="color:#fbbf24;"><%= activeDays %></strong><span>Aktif Gün</span></div>
+            </div>
+            <div class="insight-strip">
+              <div class="insight-icon"><span class="material-icons">trending_up</span></div>
+              <div style="min-width:0;">
+                <div style="font-size:12px;font-weight:800;color:#f8fafc;">Seviye ilerlemesi</div>
+                <div class="panel-sub">
+                  <% if(profileLevel >= 10) { %>
+                    Maksimum seviyeye ulaşıldı.
+                  <% } else { %>
+                    Seviye <%= profileLevel + 1 %> için <%= nextLevelPts %> puan kaldı.
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-full-flow">
+
+          <!-- Kategori Detayları -->
+          <div class="profile-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-label">Skill Breakdown</div>
+                <div class="panel-sub">Kategori bazlı tamamlanma görünümü</div>
+              </div>
+            </div>
+            <div class="skill-grid">
+              <% Object.keys(stats).forEach(cat => {
+                const pct = Math.round((stats[cat].solved/stats[cat].total)*100)||0;
+                const color = pct===100?'#10b981':(pct>0?'#38bdf8':'#334155');
+              %>
+              <div class="skill-card">
+                <div class="skill-top">
+                  <span class="skill-name" style="color:<%= color %>;" title="<%= cat.toUpperCase() %>"><%= cat.toUpperCase() %></span>
+                  <span class="skill-count"><%= stats[cat].solved %>/<%= stats[cat].total %></span>
+                </div>
+                <div class="level-bar" style="height:4px;">
+                  <div style="height:100%;background:<%= color %>;width:<%= pct %>%;border-radius:3px;"></div>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+
+          <!-- Çözülen Görevler -->
+          <div class="profile-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-label">Son Çözümler</div>
+                <div class="panel-sub"><%= solvedCount %> toplam çözüm</div>
+              </div>
+            </div>
+            <div class="solves-grid">
+              <% if(profile.solved && profile.solved.length > 0) { %>
+                <% profile.solved.slice().reverse().forEach(id => {
+                  const challenge = labs[id] || ctfChallenges[id];
+                  const isFirstBlood = (firstblood || {})[id] && (firstblood || {})[id].username === profile.username;
+                %>
+                <div class="solve-card" style="border-color:<%= isFirstBlood ? 'rgba(239,68,68,0.25)' : 'rgba(16,185,129,0.15)' %>;background:<%= isFirstBlood ? 'rgba(239,68,68,0.06)' : 'rgba(16,185,129,0.04)' %>;">
+                  <span class="solve-icon" style="color:<%= isFirstBlood ? '#ef4444' : '#10b981' %>;"><span class="material-icons"><%= isFirstBlood ? 'local_fire_department' : 'check_circle' %></span></span>
+                  <span class="solve-title"><%= challenge ? challenge.title : 'Görev ('+id+')' %></span>
+                </div>
+                <% }) %>
+              <% } else { %>
+                <div class="empty-state">Henüz çözüm yok</div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Aktivite Takvimi — tam kart, yıl seçici -->
+          <div class="profile-panel">
+            <!-- Başlık + Yıl Seçici -->
+            <div class="cal-header">
+              <div>
+                <div class="panel-title">Aktivite Takvimi</div>
+                <div class="panel-sub">Aktif günler ve tamamlanan görev yoğunluğu</div>
+              </div>
+              <select id="calYearSelect" class="cal-select">
+                <% const currentYear = new Date().getFullYear(); %>
+                <% for(let y = currentYear; y >= currentYear - 3; y--) { %>
+                  <option value="<%= y %>" <%= y === currentYear ? 'selected' : '' %>><%= y %></option>
+                <% } %>
+              </select>
+            </div>
+            <!-- Ay etiketleri -->
+            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:16px 0 4px;padding:0 2px;">
+              <% ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'].forEach(m => { %>
+                <div style="font-size:10px;color:#64748b;font-family:'Inter',sans-serif;"><%= m %></div>
+              <% }) %>
+            </div>
+            <!-- Takvim Grid -->
+            <div id="calGrid" style="display:grid;grid-template-columns:repeat(12,1fr);gap:4px;"></div>
+            <!-- Legend -->
+            <div style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:10px;color:#475569;">
+              <span>Az</span>
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.06);border-radius:3px;"></div>
+              <div style="width:12px;height:12px;background:rgba(16,185,129,0.3);border-radius:3px;"></div>
+              <div style="width:12px;height:12px;background:rgba(16,185,129,0.6);border-radius:3px;"></div>
+              <div style="width:12px;height:12px;background:#10b981;border-radius:3px;"></div>
+              <span>Çok</span>
+            </div>
+          </div>
+
+          <!-- Aktivite Zaman Çizelgesi -->
+          <div class="profile-panel">
+            <div class="panel-title">Aktivite Zaman Çizelgesi</div>
+            <div class="panel-sub" style="margin-bottom:18px;">
+              <span style="color:#10b981;font-weight:600;"><%= profile.username %></span> için son aktiviteler.
+            </div>
+            <div id="activityTimeline">
+              <div style="font-size:11px;color:#334155;font-family:'JetBrains Mono',monospace;">Yükleniyor...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const statsData = <%- JSON.stringify(stats) %>;
+const activityData = <%- JSON.stringify(activityCountMap) %>;
+const activityTitles = <%- JSON.stringify(activityTitleMap) %>;
+
+// Rozet açıklamaları
+const badgesData = <%- JSON.stringify(badges.map(b => ({
+  icon: b.icon || '🏅',
+  name: b.name,
+  color: b.color,
+  firstbloods: b.firstbloods || null,
+  desc: b.name === 'Kurucu' ? 'Defendia Network Defense\'nın kurucusu. Platform\'un yaratıcısı ve baş mimarı.' :
+        b.name === 'CTF Editörü' ? 'CTF görevlerini oluşturan ve yöneten editör.' :
+        b.name === 'Beta' ? 'Defendia Network Defense\'nın beta test sürecine katılan ilk operatörlerden biri.' :
+        b.name.startsWith('İlk Kan') ? 'Bir veya daha fazla görevi platformda ilk çözen operatör. 🩸' :
+        b.name === 'CTF Avcısı' ? 'Platformdaki tüm CTF görevlerini başarıyla tamamladı!' :
+        b.name === 'Lab Avcısı' ? 'Platformdaki tüm laboratuvar makinelerini ele geçirdi!' :
+        b.name === 'Senaryo Avcısı' ? 'Platformdaki tüm operasyon senaryolarını tamamladı!' :
+        b.desc || 'Özel rozet.'
+}))) %>;
+
+/* ── İlk Kan Özel Bildirimi ── */
+function showFirstBloodAlert(notif) {
+  // Önce normal bildirim geçmişine ekle
+  handleNotification(notif);
+
+  // Özel ilk kan modal
+  const existing = document.getElementById('firstBloodOverlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'firstBloodOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(8,12,24,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(16px);animation:pageEnter 0.35s ease;';
+
+  overlay.innerHTML = `
+    <div style="max-width:480px;width:90%;background:rgba(13,18,36,0.98);border:2px solid #ef4444;border-radius:20px;padding:48px 36px;text-align:center;box-shadow:0 0 80px rgba(239,68,68,0.5);animation:fadeInUp 0.35s ease;position:relative;">
+      <div style="font-size:80px;margin-bottom:8px;animation:bellPulse 0.8s infinite;">🩸</div>
+      <div style="font-size:10px;letter-spacing:4px;color:#ef4444;text-transform:uppercase;font-weight:800;margin-bottom:10px;font-family:'JetBrains Mono',monospace;">İLK KAN ROZETİ KAZANILDI</div>
+      <div style="font-size:18px;color:#f1f5f9;font-weight:700;line-height:1.5;margin-bottom:8px;">${notif.message.replace('🩸 İLK KAN! ','')}</div>
+      <div style="font-size:11px;color:#475569;margin-bottom:28px;font-family:'JetBrains Mono',monospace;">${new Date(notif.createdAt).toLocaleString('tr-TR')}</div>
+      <button id="fbCloseBtn" style="background:#ef4444;color:#080c18;border:none;padding:12px 44px;border-radius:8px;font-size:13px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 0 20px rgba(239,68,68,0.4);">ANLADIM</button>
+      <div style="position:absolute;top:12px;left:12px;width:16px;height:16px;border-top:2px solid #ef4444;border-left:2px solid #ef4444;border-radius:2px 0 0 0;opacity:0.6;"></div>
+      <div style="position:absolute;top:12px;right:12px;width:16px;height:16px;border-top:2px solid #ef4444;border-right:2px solid #ef4444;border-radius:0 2px 0 0;opacity:0.6;"></div>
+      <div style="position:absolute;bottom:12px;left:12px;width:16px;height:16px;border-bottom:2px solid #ef4444;border-left:2px solid #ef4444;border-radius:0 0 0 2px;opacity:0.6;"></div>
+      <div style="position:absolute;bottom:12px;right:12px;width:16px;height:16px;border-bottom:2px solid #ef4444;border-right:2px solid #ef4444;border-radius:0 0 2px 0;opacity:0.6;"></div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  function close() {
+    overlay.style.animation = 'fadeOut 0.3s forwards';
+    setTimeout(() => overlay.remove(), 300);
+    document.removeEventListener('keydown', esc);
+  }
+  document.getElementById('fbCloseBtn').addEventListener('click', close);
+  function esc(e) { if(e.key === 'Escape') close(); }
+  document.addEventListener('keydown', esc);
+  overlay.addEventListener('click', e => { if(e.target === overlay) close(); });
+}
+
+function showBadgeModal(idx) {
+  const b = badgesData[idx];
+  if (!b) return;
+  const modal = document.getElementById('badgeModal');
+  const inner = document.getElementById('badgeModalInner');
+  document.getElementById('badgeModalIcon').textContent = b.icon;
+  document.getElementById('badgeModalName').textContent = b.name.toUpperCase();
+  document.getElementById('badgeModalName').style.color = b.color;
+
+  // Açıklama + ilk kan listesi
+  const descEl = document.getElementById('badgeModalDesc');
+  let descHtml = `<span style="color:#94a3b8;">${b.desc}</span>`;
+  if (b.firstbloods && b.firstbloods.length > 0) {
+    descHtml += `<div style="margin-top:14px;border-top:1px solid rgba(239,68,68,0.15);padding-top:12px;">
+      <div style="font-size:9px;letter-spacing:2px;color:#ef4444;font-family:'JetBrains Mono',monospace;margin-bottom:8px;">İLK KAN ALINAN GÖREVLER</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${b.firstbloods.map(f => {
+          const d = new Date(f.solvedAt);
+          const dateStr = d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric' });
+          const timeStr = d.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:6px;text-align:left;">
+            <span style="font-size:12px;color:#fca5a5;font-weight:600;">🩸 ${f.title}</span>
+            <span style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;flex-shrink:0;margin-left:8px;">${dateStr} ${timeStr}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+  descEl.innerHTML = descHtml;
+
+  inner.style.border = `2px solid ${b.color}`;
+  inner.style.boxShadow = `0 0 60px ${b.color}44`;
+  const tl = document.getElementById('badgeModalCornerTL');
+  const br = document.getElementById('badgeModalCornerBR');
+  if(tl) { tl.style.borderTop = `2px solid ${b.color}`; tl.style.borderLeft = `2px solid ${b.color}`; }
+  if(br) { br.style.borderBottom = `2px solid ${b.color}`; br.style.borderRight = `2px solid ${b.color}`; }
+  modal.style.display = 'flex';
+}
+
+function showAvatarModal(src, username) {
+  document.getElementById('avatarModalImg').src = src;
+  document.getElementById('avatarModalName').textContent = username.toUpperCase();
+  document.getElementById('avatarModal').style.display = 'flex';
+}
+
+// ESC ile modal kapat
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') {
+    document.getElementById('badgeModal').style.display = 'none';
+    document.getElementById('activityModal').style.display = 'none';
+    document.getElementById('avatarModal').style.display = 'none';
+  }
+});
+const labels = Object.keys(statsData);
+
+// Türkçe kategori isimleri
+const trMap = {
+  'WEB': 'Web Güvenliği', 'CRYPTO': 'Kriptoloji', 'FORENSICS': 'Adli Bilişim',
+  'REVERSING': 'Tersine Müh.', 'PWN': 'İstismar', 'OSINT': 'OSINT',
+  'STEGANOGRAPHY': 'Steganografi', 'MISC': 'Çeşitli', 'NETWORK': 'Ağ Güvenliği',
+  'MOBILE': 'Mobil', 'CLOUD': 'Bulut', 'SENARYOLAR': 'Senaryolar'
+};
+const trLabels = labels.map(l => trMap[l.toUpperCase()] || l);
+
+// ── 4 İstatistik Chart ──
+
+// Ortak radar ayarları
+function makeRadarOpts(color) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    scales: {
+      r: {
+        angleLines: { color: 'rgba(255,255,255,0.08)' },
+        grid: { color: 'rgba(255,255,255,0.08)' },
+        pointLabels: { color: '#94a3b8', font: { size: 10, weight: 'bold', family: "'Inter',sans-serif" } },
+        ticks: { display: false },
+        suggestedMin: 0, suggestedMax: 100
+      }
+    },
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` %${ctx.raw}` } } }
+  };
+}
+
+// 1. CTF Radar — CTF kategorileri
+const ctfLabels = labels.filter(l => l !== 'Senaryolar').map(l => trMap[l.toUpperCase()] || l);
+const ctfData   = labels.filter(l => l !== 'Senaryolar').map(l => {
+  const s = statsData[l]; return s ? Math.round((s.solved/s.total)*100)||0 : 0;
+});
+new Chart(document.getElementById('ctfRadar').getContext('2d'), {
+  type: 'radar',
+  data: { labels: ctfLabels, datasets: [{ label:'CTF', data: ctfData, fill:true,
+    backgroundColor:'rgba(56,189,248,0.12)', borderColor:'#38bdf8',
+    pointBackgroundColor:'#38bdf8', pointBorderColor:'#0d1224', borderWidth:2, pointRadius:4 }] },
+  options: makeRadarOpts('#38bdf8')
+});
+
+// 2. Lab Radar — zorluk bazlı (Kolay/Orta/Zor)
+const labSolved  = <%- JSON.stringify(profile.solved ? profile.solved.filter(id => labs[id]) : []) %>;
+const labAll     = <%- JSON.stringify(Object.values(labs || {})) %>;
+const labEasy    = labAll.filter(l => (l.difficulty||'Kolay').toLowerCase()==='kolay');
+const labMedium  = labAll.filter(l => (l.difficulty||'').toLowerCase()==='orta');
+const labHard    = labAll.filter(l => (l.difficulty||'').toLowerCase()==='zor');
+const labEasyPct   = labEasy.length   ? Math.round(labEasy.filter(l=>labSolved.includes(l.id)).length/labEasy.length*100)   : 0;
+const labMediumPct = labMedium.length ? Math.round(labMedium.filter(l=>labSolved.includes(l.id)).length/labMedium.length*100) : 0;
+const labHardPct   = labHard.length   ? Math.round(labHard.filter(l=>labSolved.includes(l.id)).length/labHard.length*100)   : 0;
+const labTotalPct  = labAll.length    ? Math.round(labSolved.length/labAll.length*100) : 0;
+new Chart(document.getElementById('labRadar').getContext('2d'), {
+  type: 'radar',
+  data: { labels: ['Kolay', 'Orta', 'Zor', 'Toplam'],
+    datasets: [{ label:'Lab', data: [labEasyPct, labMediumPct, labHardPct, labTotalPct], fill:true,
+      backgroundColor:'rgba(16,185,129,0.12)', borderColor:'#10b981',
+      pointBackgroundColor:'#10b981', pointBorderColor:'#0d1224', borderWidth:2, pointRadius:4 }] },
+  options: makeRadarOpts('#10b981')
+});
+
+// 3. Senaryo — kart bazlı ilerleme (senaryo sayısından bağımsız)
+const scenData = <%- JSON.stringify(Object.values(scenarios || {}).map(s => {
+  const total = (s.tasks||[]).length;
+  const solved = (s.tasks||[]).filter(t => (profile.solved||[]).includes(s.id+'_task_'+t.id)).length;
+  const pct = total ? Math.round(solved/total*100) : 0;
+  return { name: s.title || s.id, difficulty: s.difficulty || 'Orta', solved, total, pct };
+})) %>;
+
+// 3. Senaryo Radar
+(function() {
+  const canvas = document.getElementById('sceRadar');
+  if (!canvas) return;
+
+  if (scenData.length === 0) {
+    canvas.style.display = 'none';
+    const p = canvas.parentElement;
+    if (p) p.innerHTML += '<div style="text-align:center;padding:20px 0;font-size:11px;color:#334155;font-family:\'JetBrains Mono\',monospace;">Henüz senaryo yok</div>';
+    return;
+  }
+
+  // İsimleri tam göster, uzunsa 2 satıra böl
+  let labels = scenData.map(s => {
+    const name = s.name;
+    if (name.length <= 16) return name;
+    // 16 karakterden uzunsa kelime bazlı 2 satıra böl
+    const words = name.split(' ');
+    const mid = Math.ceil(words.length / 2);
+    return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+  });
+  let data   = scenData.map(s => s.pct);
+
+  // Radar en az 3 eksen ister — eksik olanları boş ekle
+  while (labels.length < 3) { labels.push(''); data.push(0); }
+
+  new Chart(canvas.getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Tamamlanma %',
+        data,
+        fill: true,
+        backgroundColor: 'rgba(167,139,250,0.15)',
+        borderColor: '#a78bfa',
+        pointBackgroundColor: '#a78bfa',
+        pointBorderColor: '#0d1224',
+        pointHoverBackgroundColor: '#c4b5fd',
+        borderWidth: 2,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: {
+            stepSize: 25,
+            color: '#334155',
+            font: { size: 8 },
+            backdropColor: 'transparent',
+            callback: v => v === 0 ? '' : v + '%'
+          },
+          grid:        { color: 'rgba(255,255,255,0.06)' },
+          angleLines:  { color: 'rgba(255,255,255,0.06)' },
+          pointLabels: {
+            color: '#94a3b8',
+            font: { size: 11, weight: '600' }
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const s = scenData[ctx.dataIndex];
+              if (!s) return '';
+              return ` ${s.solved}/${s.total} görev · %${s.pct}`;
+            }
+          }
+        }
+      }
+    }
+  });
+})();
+
+// 4. Aktivite İlerlemesi — Progress Bars
+(function() {
+  const ctfTotal  = labels.filter(l=>l!=='Senaryolar').reduce((s,l)=>s+(statsData[l]?statsData[l].total:0),0);
+  const ctfSolv   = labels.filter(l=>l!=='Senaryolar').reduce((s,l)=>s+(statsData[l]?statsData[l].solved:0),0);
+  const ctfPct    = ctfTotal ? Math.round(ctfSolv/ctfTotal*100) : 0;
+
+  const labTotal  = labAll.length;
+  const labSolv   = labSolved.length;
+  const labPct    = labTotal ? Math.round(labSolv/labTotal*100) : 0;
+
+  const scenTotal = statsData['Senaryolar'] ? statsData['Senaryolar'].total : 0;
+  const scenSolv  = statsData['Senaryolar'] ? statsData['Senaryolar'].solved : 0;
+  const scenPct   = scenTotal ? Math.round(scenSolv/scenTotal*100) : 0;
+
+  setTimeout(() => {
+    const ctfBar  = document.getElementById('actCtfBar');
+    const labBar  = document.getElementById('actLabBar');
+    const sceBar  = document.getElementById('actSceBar');
+    const ctfPctEl = document.getElementById('actCtfPct');
+    const labPctEl = document.getElementById('actLabPct');
+    const scePctEl = document.getElementById('actScePct');
+    const ctfSub  = document.getElementById('actCtfSub');
+    const labSub  = document.getElementById('actLabSub');
+    const sceSub  = document.getElementById('actSceSub');
+
+    if (ctfBar)  ctfBar.style.width  = ctfPct  + '%';
+    if (labBar)  labBar.style.width  = labPct  + '%';
+    if (sceBar)  sceBar.style.width  = scenPct + '%';
+    if (ctfPctEl) ctfPctEl.textContent = ctfPct  + '%';
+    if (labPctEl) labPctEl.textContent = labPct  + '%';
+    if (scePctEl) scePctEl.textContent = scenPct + '%';
+    if (ctfSub)  ctfSub.textContent  = ctfSolv  + ' / ' + ctfTotal  + ' tamamlandı';
+    if (labSub)  labSub.textContent  = labSolv  + ' / ' + labTotal  + ' tamamlandı';
+    if (sceSub)  sceSub.textContent  = scenSolv + ' / ' + scenTotal + ' tamamlandı';
+  }, 300);
+})();
+
+/* ── Aktivite Takvimi — GitHub tarzı haftalık ── */
+/* ── Aktivite Takvimi & Zaman Çizelgesi ── */
+const _allSolvedDates = <%- JSON.stringify(solvedDates || {}) %>;
+const _challengeTitles = {};
+<% Object.values(labs||{}).forEach(l => { %> _challengeTitles['<%= l.id %>'] = '<%= (l.title||'').replace(/'/g,"\\'") %>'; <% }) %>
+<% Object.values(ctfChallenges||{}).forEach(c => { %> _challengeTitles['<%= c.id %>'] = '<%= (c.title||'').replace(/'/g,"\\'") %>'; <% }) %>
+<% Object.values(scenarios||{}).forEach(s => { (s.tasks||[]).forEach(t => { %> _challengeTitles['<%= s.id %>_task_<%= t.id %>'] = '<%= (s.title||'').replace(/'/g,"\\'") + ": " + (t.question||'Görev').substring(0,25).replace(/'/g,"\\'") %>'; <% }) }) %>
+
+function buildCalGrid(year) {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+
+  const months = 12;
+  let html = '';
+
+  for (let m = 0; m < months; m++) {
+    const daysInMonth = new Date(year, m + 1, 0).getDate();
+    const now = new Date();
+    let monthHtml = '<div style="display:flex;flex-direction:column;gap:3px;">';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const count = activityData[dateStr] || 0;
+      const isFuture = new Date(dateStr) > now;
+      let bg = 'rgba(255,255,255,0.05)';
+      if (!isFuture && count > 0) {
+        bg = count >= 5 ? '#10b981' : count >= 3 ? 'rgba(16,185,129,0.65)' : 'rgba(16,185,129,0.35)';
+      }
+      const titles = activityTitles[dateStr] ? activityTitles[dateStr].substring(0,60) : '';
+      const tip = count > 0 ? `${dateStr}: ${count} çözüm${titles?'\n'+titles:''}` : dateStr;
+      const clickAttr = count > 0 ? `onclick="openDayModal('${dateStr}')"` : '';
+      monthHtml += `<div title="${tip.replace(/"/g,'&quot;')}" ${clickAttr} style="width:100%;height:10px;background:${bg};border-radius:2px;cursor:${count>0?'pointer':'default'};transition:transform 0.15s,filter 0.15s;" ${count>0?'onmouseover="this.style.transform=\'scale(1.4)\';this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.filter=\'brightness(1)\'"':''}></div>`;
+    }
+    monthHtml += '</div>';
+    html += monthHtml;
+  }
+  grid.innerHTML = html;
+}
+
+function buildTimeline() {
+  const el = document.getElementById('activityTimeline');
+  if (!el) return;
+
+  // Tarihe göre grupla
+  const grouped = {};
+  Object.entries(_allSolvedDates).forEach(([id, dateStr]) => {
+    const d = dateStr.substring(0, 10);
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push({ id, dateStr, title: _challengeTitles[id] || id });
+  });
+
+  const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b)-new Date(a)).slice(0,10);
+
+  if (sortedDates.length === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:#334155;font-family:\'JetBrains Mono\',monospace;">Henüz aktivite yok</div>';
+    return;
+  }
+
+  const now = new Date();
+  el.innerHTML = sortedDates.map(date => {
+    const d = new Date(date);
+    const diffDays = Math.floor((now - d) / 86400000);
+    const agoStr = diffDays === 0 ? 'Bugün' : diffDays === 1 ? 'Dün' : `${diffDays} gün önce`;
+    const dateLabel = d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric' });
+
+    const items = grouped[date].map(item => `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:13px;color:#cbd5e1;"><b style="color:white;">${item.title}</b> tamamlandı</span>
+        <span style="font-size:11px;color:#475569;white-space:nowrap;margin-left:12px;">${agoStr}</span>
+      </div>`).join('');
+
+    return `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px;">${dateLabel}</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;margin-top:2px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;"></div>
+            <div style="width:2px;flex:1;background:rgba(16,185,129,0.2);margin-top:4px;min-height:20px;"></div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:11px;color:#10b981;font-weight:600;margin-bottom:6px;">Görev tamamlandı</div>
+            ${items}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// İlk yükleme
+buildCalGrid(new Date().getFullYear());
+buildTimeline();
+
+// Yıl değişince
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('calYearSelect');
+  if (sel) {
+    sel.addEventListener('change', () => buildCalGrid(parseInt(sel.value)));
+  }
+});
+
+/* ── Gün Modal ── */
+function openDayModal(dateStr) {
+  const modal = document.getElementById('dayModal');
+  const title = document.getElementById('dayModalTitle');
+  const content = document.getElementById('dayModalContent');
+  if (!modal || !title || !content) return;
+
+  // Tarihi formatla
+  const d = new Date(dateStr);
+  const formatted = d.toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  title.textContent = formatted.toUpperCase();
+
+  // O güne ait çözümleri bul
+  const daySolves = Object.entries(_allSolvedDates)
+    .filter(([id, dt]) => dt && dt.substring(0,10) === dateStr)
+    .map(([id, dt]) => ({ id, title: _challengeTitles[id] || id, time: dt }));
+
+  if (daySolves.length === 0) {
+    content.innerHTML = '<div style="font-size:12px;color:#334155;font-family:\'JetBrains Mono\',monospace;">Kayıt bulunamadı</div>';
+  } else {
+    content.innerHTML = daySolves.map((s, i) => {
+      const t = new Date(s.time);
+      const timeStr = t.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:8px;animation:fadeInUp 0.3s ease ${i*0.08}s both;">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span class="material-icons" style="font-size:16px;color:#10b981;">check_circle</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.title}</div>
+            <div style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:2px;">${timeStr} · TAMAMLANDI</div>
+          </div>
+          <div style="font-size:18px;">✅</div>
+        </div>`;
+    }).join('');
+  }
+
+  modal.style.display = 'flex';
+}
+
+async function loadProfileData() {
+  try {
+    const data = await (await fetch('/api/leaderboard')).json();
+    const me = data.find(u => u.username === '<%= profile.username %>');
+    if(me) {
+      const rankEl = document.getElementById('profileRank');
+      if(rankEl) rankEl.textContent = '#'+(data.indexOf(me)+1);
+    }
+  } catch(e) {}
+}
+loadProfileData();
+
+async function saveAll() {
+  const fileInput = document.getElementById('avatarFile');
+  const bio = document.getElementById('newBio').value;
+  try {
+    if(fileInput.files.length > 0) {
+      const fd = new FormData(); fd.append('avatar', fileInput.files[0]);
+      const r = await (await fetch('/api/upload-avatar',{method:'POST',body:fd})).json();
+      if(!r.success) { alert(r.message); return; }
+    }
+    const r = await (await fetch('/api/update-profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bio})})).json();
+    if(r.success) location.reload();
+  } catch(e) { alert('Hata!'); }
+}
+
+function loadNotificationPreferences() {
+  const p = JSON.parse(localStorage.getItem('notif_preferences')||'{}');
+  const st = document.getElementById('soundPreferenceToggle');
+  if(st) st.checked = p.sound !== false;
+  const types = p.types || ['info','success','warning','danger'];
+  ['prefInfo','prefSuccess','prefWarning','prefDanger'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if(el) el.checked = types.includes(['info','success','warning','danger'][i]);
+  });
+}
+
+async function submitChangePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newPw    = document.getElementById('pwNew').value;
+  const confirm  = document.getElementById('pwConfirm').value;
+  const msg      = document.getElementById('pwMsg');
+
+  function showPwMsg(text, ok) {
+    msg.textContent = text;
+    msg.style.display = 'block';
+    msg.style.background = ok ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+    msg.style.border     = ok ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+    msg.style.color      = ok ? '#10b981' : '#ef4444';
+  }
+
+  if (!current)          return showPwMsg('Mevcut şifreyi girin.', false);
+  if (!newPw || newPw.length < 4) return showPwMsg('Yeni şifre en az 4 karakter olmalı.', false);
+  if (newPw !== confirm) return showPwMsg('Şifreler eşleşmiyor.', false);
+
+  const res  = await fetch('/api/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+  });
+  const data = await res.json();
+  if (data.success) {
+    showPwMsg('✅ ' + data.message, true);
+    document.getElementById('pwCurrent').value = '';
+    document.getElementById('pwNew').value     = '';
+    document.getElementById('pwConfirm').value = '';
+    setTimeout(() => { document.getElementById('changePwModal').style.display = 'none'; msg.style.display = 'none'; }, 2000);
+  } else {
+    showPwMsg('❌ ' + data.message, false);
+  }
+}
+
+function saveNotificationPreferences() {
+  const st = document.getElementById('soundPreferenceToggle');
+  const types = [];
+  [['prefInfo','info'],['prefSuccess','success'],['prefWarning','warning'],['prefDanger','danger']].forEach(([id,t]) => {
+    const el = document.getElementById(id); if(el&&el.checked) types.push(t);
+  });
+  localStorage.setItem('notif_preferences', JSON.stringify({sound:st?st.checked:true, types}));
+  const el = document.getElementById('prefStatus');
+  if(el) { el.textContent='✓ Kaydedildi'; el.style.display='block'; setTimeout(()=>el.style.display='none',2000); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadNotificationPreferences();
+  const bell=document.getElementById('notifBellBtn'),drop=document.getElementById('notifDropdown');
+  if(bell&&drop){loadNotificationData();bell.addEventListener('click',e=>{e.stopPropagation();const o=drop.classList.toggle('active');if(o)markAllAsRead();});document.addEventListener('click',e=>{if(!bell.contains(e.target)&&!drop.contains(e.target))drop.classList.remove('active');});document.getElementById('notifClearBtn').addEventListener('click',clearAllNotifications);}
+  let es=null,r=0;function conn(){if(es)es.close();es=new EventSource('/api/notifications/stream');es.onmessage=e=>{try{processNotification(JSON.parse(e.data));}catch(err){}};es.onerror=()=>{es.close();if(r++<3)setTimeout(conn,5000);};es.addEventListener('ping',()=>{r=0;});}conn();
+});
+
+/* ── Bildirim Yardımcı Fonksiyonları ── */
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

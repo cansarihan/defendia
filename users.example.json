@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1700000000000,
+    "username": "ornek_kullanici",
+    "password": "$2b$10$REDACTED_BCRYPT_HASH_ORNEK_DEGER_BURAYA_GELECEK",
+    "active_vmid": null,
+    "active_vmid_id": null,
+    "ip_address": null,
+    "expiry": null,
+    "solved": [],
+    "scenario_progress": {},
+    "bio": "",
+    "avatar": "",
+    "hackerbox_vmid": null,
+    "hackerbox_ip": null,
+    "hackerbox_expiry": null
+  }
+]

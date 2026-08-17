@@ -1,0 +1,65 @@
+<div id="viewBans" class="menu-section">
+
+  <div class="admin-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="admin-card-title" style="margin-bottom:0;"><span class="material-icons" style="color:#ef4444;">block</span> Yasaklama Yönetimi</div>
+      <button onclick="loadAdminBans()" class="admin-btn admin-btn-reset" style="padding:7px 14px;">
+        <span class="material-icons" style="font-size:13px;">refresh</span> Yenile
+      </button>
+    </div>
+    <div id="adminBansList">
+      <div style="text-align:center;padding:32px;color:#475569;font-family:'JetBrains Mono',monospace;font-size:12px;">Yükleniyor...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ban Modal -->
+<div class="modal-overlay" id="banModal">
+  <div class="modal-content" style="width:460px;">
+    <span class="close-modal" onclick="closeModal('banModal')">&times;</span>
+    <h3 style="color:#ef4444;">Kullanıcı Yasakla</h3>
+    <input type="hidden" id="banUserId">
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:16px;">
+      Kullanıcı: <span id="banUsername" style="color:#ef4444;font-weight:700;font-family:'JetBrains Mono',monospace;"></span>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label class="admin-label">Yasak Süresi</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+        <button onclick="setBanDays(1)"   class="ban-preset-btn" data-days="1">1 Gün</button>
+        <button onclick="setBanDays(7)"   class="ban-preset-btn" data-days="7">1 Hafta</button>
+        <button onclick="setBanDays(30)"  class="ban-preset-btn" data-days="30">1 Ay</button>
+        <button onclick="setBanDays(365)" class="ban-preset-btn" data-days="365">1 Yıl</button>
+        <button onclick="setBanDays(0)"   class="ban-preset-btn" data-days="0">Süresiz</button>
+        <button onclick="setBanDays(-1)"  class="ban-preset-btn" data-days="-1">Özel</button>
+      </div>
+      <div id="customDaysRow" style="display:none;margin-top:6px;">
+        <input type="number" id="banCustomDays" min="1" placeholder="Gün sayısı girin..."
+          style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:white;padding:9px 12px;border-radius:8px;outline:none;font-size:13px;box-sizing:border-box;">
+      </div>
+      <div id="banDurationDisplay" style="margin-top:8px;font-size:11px;color:#fbbf24;font-family:'JetBrains Mono',monospace;"></div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label class="admin-label">Yasak Sebebi</label>
+      <textarea id="banReason" rows="3"
+        style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:white;padding:9px 12px;border-radius:8px;outline:none;font-size:13px;resize:none;box-sizing:border-box;"
+        placeholder="Yasak sebebini yazın..."></textarea>
+    </div>
+
+    <button onclick="submitBan()" class="btn-save" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.4);">
+      <span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">block</span> Yasakla
+    </button>
+  </div>
+</div>
+
+<style>
+.ban-preset-btn {
+  padding:8px;border-radius:7px;border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);color:#94a3b8;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all 0.2s;font-family:'JetBrains Mono',monospace;
+}
+.ban-preset-btn:hover { background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:#ef4444; }
+.ban-preset-btn.active { background:rgba(239,68,68,0.15);border-color:#ef4444;color:#ef4444; }
+</style>

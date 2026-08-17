@@ -1,0 +1,617 @@
+/* ============================================
+   ADMIN.CSS — Admin Kontrol Paneli (Yeni Tasarım)
+   ============================================ */
+
+/* ── Admin İçerik Alanı ── */
+.admin-nav-panel {
+  width: 220px;
+  min-width: 220px;
+  background: rgba(13,17,23,0.6);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.admin-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: none;
+  border-left: 2px solid transparent;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-nav-btn .material-icons { font-size: 16px; flex-shrink: 0; }
+
+.admin-nav-btn:hover {
+  color: #94a3b8;
+  background: rgba(255,255,255,0.03);
+}
+
+.admin-nav-btn.active {
+  color: #fbbf24;
+  background: rgba(251,191,36,0.08);
+  border-left-color: #fbbf24;
+}
+
+.admin-content-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  min-width: 0;
+}
+
+/* ── Bölüm Geçişleri ── */
+.menu-section {
+  display: none;
+  animation: adminFadeIn 0.3s ease;
+}
+
+.menu-section.active {
+  display: block;
+}
+
+@keyframes adminFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Admin Kartları ── */
+.admin-card {
+  background: rgba(17,24,39,0.75);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(6px);
+}
+
+.admin-card-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-card-title .material-icons { font-size: 14px; }
+
+/* ── İstatistik Grid ── */
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-stat-card {
+  background: rgba(17,24,39,0.75);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+
+.admin-stat-card::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 3px; height: 100%;
+  background: var(--blue);
+  border-radius: 3px 0 0 3px;
+}
+
+.admin-stat-card.green::after { background: var(--green); }
+.admin-stat-card.red::after   { background: var(--red); }
+.admin-stat-card.yellow::after { background: #fbbf24; }
+
+.admin-stat-label {
+  font-size: 10px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.admin-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+
+.admin-stat-sub {
+  font-size: 10px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 4px;
+}
+
+/* ── Progress Bar ── */
+.admin-progress-bg {
+  width: 100%;
+  height: 5px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.admin-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s ease;
+}
+
+/* ── Tablolar ── */
+.admin-table-wrap {
+  background: rgba(13,17,23,0.5);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead tr {
+  background: rgba(56,189,248,0.04);
+}
+
+.admin-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.admin-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.admin-table tbody tr:last-child td { border-bottom: none; }
+
+.admin-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+/* ── Aksiyon Butonları ── */
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.admin-btn-edit {
+  background: rgba(16,185,129,0.1);
+  color: #10b981;
+  border-color: rgba(16,185,129,0.3);
+}
+.admin-btn-edit:hover { background: rgba(16,185,129,0.2); }
+
+.admin-btn-del {
+  background: rgba(239,68,68,0.1);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.3);
+}
+.admin-btn-del:hover { background: rgba(239,68,68,0.2); }
+
+.admin-btn-reset {
+  background: rgba(56,189,248,0.1);
+  color: #38bdf8;
+  border-color: rgba(56,189,248,0.3);
+}
+.admin-btn-reset:hover { background: rgba(56,189,248,0.2); }
+
+.admin-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 8px;
+  color: #10b981;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.admin-btn-add:hover {
+  background: rgba(16,185,129,0.2);
+  box-shadow: 0 0 12px rgba(16,185,129,0.2);
+}
+
+.admin-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  background: rgba(56,189,248,0.15);
+  border: 1px solid rgba(56,189,248,0.4);
+  border-radius: 8px;
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  width: 100%;
+}
+.admin-btn-primary:hover {
+  background: rgba(56,189,248,0.25);
+  box-shadow: 0 0 16px rgba(56,189,248,0.2);
+}
+
+.admin-btn-broadcast {
+  background: rgba(167,139,250,0.15);
+  border-color: rgba(167,139,250,0.4);
+  color: #a78bfa;
+}
+.admin-btn-broadcast:hover {
+  background: rgba(167,139,250,0.25);
+  box-shadow: 0 0 16px rgba(167,139,250,0.2);
+}
+
+/* ── Form Elemanları ── */
+.admin-input,
+.admin-textarea,
+.admin-select {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.admin-input:focus,
+.admin-textarea:focus,
+.admin-select:focus {
+  border-color: rgba(56,189,248,0.4);
+}
+
+.admin-textarea { resize: vertical; min-height: 80px; }
+
+.admin-label {
+  font-size: 11px;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.admin-form-row {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(2,6,23,0.85);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+.modal-overlay.active {
+  display: flex;
+  animation: popIn 0.3s ease;
+}
+
+.modal-content {
+  background: #0a0f1e;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 28px;
+  border-radius: 16px;
+  width: 650px;
+  max-width: 92vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.modal-content h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin: 0 0 4px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.close-modal {
+  position: absolute;
+  top: 14px; right: 18px;
+  color: #ef4444;
+  font-size: 22px;
+  cursor: pointer;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+  border-color: rgba(56,189,248,0.4);
+}
+
+#sceDesc { min-height: 160px; height: 160px; resize: vertical; line-height: 1.6; width: 100%; box-sizing: border-box; }
+
+.btn-save {
+  background: rgba(56,189,248,0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56,189,248,0.4);
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.btn-save:hover {
+  background: rgba(56,189,248,0.25);
+  box-shadow: 0 0 16px rgba(56,189,248,0.2);
+}
+
+.upload-area {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-upload {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.3);
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  height: 40px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.btn-upload:hover { background: rgba(16,185,129,0.25); }
+
+.btn-add-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16,185,129,0.1);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+.btn-add-new:hover { background: rgba(16,185,129,0.2); }
+
+/* ── Görev Girişi ── */
+.task-entry {
+  border: 1px solid rgba(255,255,255,0.07);
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: rgba(0,0,0,0.2);
+  border-left: 3px solid #38bdf8;
+}
+
+.task-entry-title {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-remove-task {
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+/* ── Toast ── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: rgba(13,17,23,0.95);
+  border-left: 3px solid #38bdf8;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  animation: slideInToast 0.3s ease, fadeOutToast 0.3s ease 2.7s forwards;
+  backdrop-filter: blur(8px);
+}
+
+.toast.success { border-color: #10b981; }
+.toast.error   { border-color: #ef4444; }
+
+/* ── Sistem Bölümü ── */
+.sys-badge {
+  font-size: 10px;
+  padding: 4px 10px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: #10b981;
+  border-radius: 6px;
+  letter-spacing: 1px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  transition: .3s;
+  border-radius: 22px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px; width: 14px;
+  left: 3px; bottom: 3px;
+  background: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+input:checked + .toggle-slider { background: rgba(56,189,248,0.3); border-color: #38bdf8; }
+input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+/* Online/Offline */
+.online-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.online-dot.online  { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.online-dot.offline { background: #475569; }
+
+/* Notification Result */
+#notificationResult {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: none;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+#notificationResult.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
+#notificationResult.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #ef4444; }
+#notificationResult.info    { background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; }
+
+/* ── Animasyonlar ── */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInToast {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes fadeOutToast {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Destek</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .support-page{flex:1;overflow-y:auto;padding:26px;}
+    .support-wrap{width:min(1280px,100%);display:flex;flex-direction:column;gap:18px;}
+    .support-hero{position:relative;overflow:hidden;border:1px solid rgba(56,189,248,0.14);border-radius:10px;background:linear-gradient(135deg,rgba(17,24,39,0.96),rgba(13,18,36,0.9));padding:22px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;}
+    .support-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(56,189,248,0.08),transparent 45%,rgba(167,139,250,0.07));pointer-events:none;}
+    .support-hero>*{position:relative;z-index:1;}
+    .support-kicker{font-size:9px;font-weight:800;color:#38bdf8;letter-spacing:2px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:8px;}
+    .support-title{font-size:26px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;letter-spacing:0;margin-bottom:8px;}
+    .support-subtitle{font-size:13px;color:#94a3b8;line-height:1.6;max-width:700px;}
+    .support-stats{display:grid;grid-template-columns:repeat(3,minmax(92px,1fr));gap:10px;min-width:330px;}
+    .support-stat{background:rgba(8,12,24,0.6);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px;}
+    .support-stat strong{display:block;font-size:18px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;line-height:1;}
+    .support-stat span{display:block;margin-top:7px;font-size:8px;font-weight:800;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;}
+    .support-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:rgba(17,24,39,0.72);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:16px 18px;backdrop-filter:blur(8px);}
+    .support-toolbar-title{font-size:10px;font-weight:800;color:#64748b;letter-spacing:2px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;}
+    .support-toolbar-sub{font-size:12px;color:#94a3b8;margin-top:4px;}
+    .support-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:9px 14px;border-radius:8px;border:1px solid transparent;font-size:11px;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.2s;text-decoration:none;white-space:nowrap;}
+    .support-btn .material-icons{font-size:15px;}
+    .support-btn.primary{background:rgba(56,189,248,0.14);border-color:rgba(56,189,248,0.38);color:#38bdf8;}
+    .support-btn.primary:hover{background:rgba(56,189,248,0.22);}
+    .support-btn.danger{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.28);color:#ef4444;}
+    .support-btn.danger:hover{background:rgba(239,68,68,0.18);}
+    .support-btn.ghost{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);color:#94a3b8;}
+    .ticket-panel{background:rgba(17,24,39,0.78);border:1px solid rgba(255,255,255,0.07);border-radius:10px;overflow:hidden;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,0.18);}
+    .ticket-head,.ticket-row{display:grid;grid-template-columns:70px minmax(0,1fr) 170px 132px 178px;align-items:center;gap:12px;}
+    .ticket-head{padding:12px 16px;background:rgba(56,189,248,0.045);border-bottom:1px solid rgba(255,255,255,0.07);}
+    .ticket-head span{font-size:9px;font-weight:800;color:#64748b;letter-spacing:1.6px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;}
+    .ticket-row{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.15s, transform 0.15s;}
+    .ticket-row:hover{background:rgba(255,255,255,0.025);}
+    .ticket-row:last-child{border-bottom:none;}
+    .ticket-subject{min-width:0;}
+    .ticket-title{font-size:13px;font-weight:800;color:#f8fafc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:6px;}
+    .ticket-date{font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace;}
+    .ticket-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+    .icon-action{width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);display:inline-flex;align-items:center;justify-content:center;color:#94a3b8;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+    .icon-action .material-icons{font-size:16px;}
+    .icon-action:hover{border-color:rgba(56,189,248,0.3);color:#38bdf8;}
+    .icon-action.danger:hover{border-color:rgba(239,68,68,0.35);color:#ef4444;background:rgba(239,68,68,0.08);}
+    .status-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.8px;white-space:nowrap;}
+    .status-open     { background:rgba(56,189,248,0.1);  color:#38bdf8;  border:1px solid rgba(56,189,248,0.3); }
+    .status-answered { background:rgba(16,185,129,0.1);  color:#10b981;  border:1px solid rgba(16,185,129,0.3); }
+    .status-closed   { background:rgba(71,85,105,0.15);  color:#475569;  border:1px solid rgba(71,85,105,0.3); }
+    .cat-badge{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.25);}
+    .empty-state{padding:46px 24px;text-align:center;color:#64748b;font-family:'JetBrains Mono',monospace;font-size:12px;}
+    .empty-state .material-icons{font-size:34px;display:block;margin-bottom:10px;opacity:.35;}
+    .field-label{display:block;font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;}
+    .support-input{width:100%;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.09);color:white;padding:10px 12px;border-radius:8px;outline:none;font-size:13px;box-sizing:border-box;font-family:'Inter',sans-serif;}
+    .support-input:focus{border-color:rgba(56,189,248,0.42);}
+    .modal-shell{max-width:520px;width:92%;background:rgba(10,15,30,0.98);border:1px solid rgba(56,189,248,0.2);border-radius:12px;padding:26px;position:relative;}
+    .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#ef4444;font-size:22px;cursor:pointer;line-height:1;}
+    @media (max-width:1120px){.support-hero{grid-template-columns:1fr}.support-stats{min-width:0}.ticket-head{display:none}.ticket-row{grid-template-columns:1fr;align-items:start}.ticket-actions{justify-content:flex-start}.ticket-date{margin-top:2px}}
+    @media (max-width:720px){.support-page{padding:16px}.support-title{font-size:21px}.support-stats{grid-template-columns:1fr}.support-toolbar{align-items:stretch;flex-direction:column}.support-toolbar .support-btn{width:100%}.ticket-panel{border-radius:9px}}
+  </style>
+</head>
+<body>
+<%
+  const openCount = myTickets.filter(t => t.status === 'open').length;
+  const answeredCount = myTickets.filter(t => t.status === 'answered').length;
+  const closedCount = myTickets.filter(t => t.status === 'closed').length;
+%>
+<div class="dash-shell">
+  <%- include('partials/sidebar-only') %>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">DESTEK // <span>YARDIM_MERKEZİ</span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <div class="support-page page-enter">
+      <div class="support-wrap">
+        <section class="support-hero">
+          <div>
+            <div class="support-kicker">YARDIM MERKEZİ</div>
+            <div class="support-title">Destek Talepleri</div>
+            <div class="support-subtitle">Sorunlarını ilet, yanıtları takip et ve artık kapanmış talepleri kendi panelinden silebil.</div>
+          </div>
+          <div class="support-stats">
+            <div class="support-stat"><strong><%= openCount %></strong><span>Açık</span></div>
+            <div class="support-stat"><strong><%= answeredCount %></strong><span>Yanıtlandı</span></div>
+            <div class="support-stat"><strong><%= closedCount %></strong><span>Kapalı</span></div>
+          </div>
+        </section>
+
+        <div class="support-toolbar">
+          <div>
+            <div class="support-toolbar-title">Taleplerim</div>
+            <div class="support-toolbar-sub"><%= myTickets.length %> destek talebi listeleniyor</div>
+          </div>
+          <button onclick="document.getElementById('createModal').style.display='flex'" class="support-btn primary">
+            <span class="material-icons">add</span>Talep Oluştur
+          </button>
+        </div>
+
+        <div class="ticket-panel">
+          <div class="ticket-head">
+            <span>#</span>
+            <span>Başlık</span>
+            <span>Oluşturma</span>
+            <span>Durum</span>
+            <span style="text-align:right;">İşlemler</span>
+          </div>
+
+          <% if(myTickets.length === 0) { %>
+          <div class="empty-state">
+            <span class="material-icons">inbox</span>
+            Henüz destek talebiniz yok
+          </div>
+          <% } else { %>
+          <% myTickets.forEach((t, i) => {
+            const statusMap = { open:'Açık', answered:'Yanıtlandı', closed:'Kapalı' };
+            const statusClass = { open:'status-open', answered:'status-answered', closed:'status-closed' };
+            const d = new Date(t.createdAt);
+          %>
+          <div class="ticket-row" id="ticket-row-<%= t.id %>">
+            <span class="ticket-date">#<%= i+1 %></span>
+            <div class="ticket-subject">
+              <div class="ticket-title"><%= t.subject %></div>
+              <span class="cat-badge"><%= t.category %></span>
+            </div>
+            <span class="ticket-date"><%= d.toLocaleDateString('tr-TR') %> <%= d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) %></span>
+            <span class="status-badge <%= statusClass[t.status] || 'status-open' %>">
+              <span style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>
+              <%= statusMap[t.status] || 'Açık' %>
+            </span>
+            <div class="ticket-actions">
+              <a href="/support/<%= t.id %>" class="support-btn primary">
+                <span class="material-icons">open_in_new</span>Görüntüle
+              </a>
+              <button onclick="confirmDeleteTicket('<%= t.id %>')" class="icon-action danger" title="Sil">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </div>
+          <% }) %>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Talep Oluştur Modal -->
+<div id="createModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.88);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(14px);"
+  onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-shell">
+    <button onclick="document.getElementById('createModal').style.display='none'" class="modal-close">×</button>
+    <div class="support-kicker" style="margin-bottom:20px;">YENİ DESTEK TALEBİ</div>
+
+    <div style="margin-bottom:12px;">
+      <label class="field-label">Kategori</label>
+      <select id="ticketCategory" class="support-input">
+        <option value="">-- Kategori Seçin --</option>
+        <option value="Teknik Sorun">🔧 Teknik Sorun</option>
+        <option value="Hesap">👤 Hesap</option>
+        <option value="Lab / CTF">🧪 Lab / CTF</option>
+        <option value="Senaryo">🗺️ Senaryo</option>
+        <option value="Öneri">💡 Öneri</option>
+        <option value="Diğer">📋 Diğer</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label class="field-label">Konu</label>
+      <input type="text" id="ticketSubject" class="support-input" placeholder="Talebinizin konusunu yazın...">
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label class="field-label">Mesaj</label>
+      <textarea id="ticketMessage" rows="5" class="support-input" placeholder="Sorununuzu veya talebinizi detaylıca açıklayın..." style="resize:none;line-height:1.6;"></textarea>
+    </div>
+
+    <div id="createMsg" style="display:none;padding:8px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;"></div>
+
+    <button onclick="confirmCreate()" class="support-btn primary" style="width:100%;">
+      <span class="material-icons">send</span>Gönder
+    </button>
+  </div>
+</div>
+
+<!-- Onay Modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.92);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(16px);">
+  <div style="max-width:420px;width:92%;background:rgba(10,15,30,0.98);border:1px solid rgba(56,189,248,0.25);border-radius:16px;padding:32px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">📨</div>
+    <div style="font-size:14px;font-weight:700;color:white;margin-bottom:8px;">Talebi Göndermek İstiyor musunuz?</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:24px;">Destek talebiniz ekibimize iletilecek ve en kısa sürede yanıtlanacak.</div>
+    <div style="display:flex;gap:12px;">
+      <button onclick="document.getElementById('confirmModal').style.display='none'" class="support-btn ghost" style="flex:1;">Hayır</button>
+      <button onclick="submitCreate()" class="support-btn primary" style="flex:1;">Evet, Gönder</button>
+    </div>
+  </div>
+</div>
+
+<div id="deleteModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.92);z-index:10001;align-items:center;justify-content:center;backdrop-filter:blur(16px);">
+  <div style="max-width:420px;width:92%;background:rgba(10,15,30,0.98);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:30px;text-align:center;">
+    <span class="material-icons" style="font-size:42px;color:#ef4444;margin-bottom:12px;">delete_forever</span>
+    <div style="font-size:15px;font-weight:800;color:white;margin-bottom:8px;">Destek talebi silinsin mi?</div>
+    <div style="font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:22px;">Bu işlem geri alınamaz. Talep ve yanıt geçmişi kalıcı olarak silinir.</div>
+    <div style="display:flex;gap:12px;">
+      <button onclick="closeDeleteModal()" class="support-btn ghost" style="flex:1;">Vazgeç</button>
+      <button onclick="deleteTicket()" class="support-btn danger" style="flex:1;"><span class="material-icons">delete</span>Sil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let pendingDeleteTicketId = null;
+
+function confirmDeleteTicket(ticketId) {
+  pendingDeleteTicketId = ticketId;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  pendingDeleteTicketId = null;
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+async function deleteTicket() {
+  if (!pendingDeleteTicketId) return;
+  const ticketId = pendingDeleteTicketId;
+  const res = await fetch('/api/support/delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ticketId })
+  });
+  const data = await res.json();
+  if (data.success) {
+    const row = document.getElementById('ticket-row-' + ticketId);
+    if (row) row.remove();
+    closeDeleteModal();
+    location.reload();
+  } else {
+    alert(data.message || 'Silme işlemi başarısız.');
+    closeDeleteModal();
+  }
+}
+
+function confirmCreate() {
+  const cat = document.getElementById('ticketCategory').value;
+  const sub = document.getElementById('ticketSubject').value.trim();
+  const msg = document.getElementById('ticketMessage').value.trim();
+  const msgEl = document.getElementById('createMsg');
+  function showErr(t) { msgEl.textContent=t; msgEl.style.display='block'; msgEl.style.background='rgba(239,68,68,0.1)'; msgEl.style.border='1px solid rgba(239,68,68,0.3)'; msgEl.style.color='#ef4444'; }
+  if (!cat) return showErr('Kategori seçin.');
+  if (!sub) return showErr('Konu yazın.');
+  if (!msg) return showErr('Mesaj yazın.');
+  msgEl.style.display = 'none';
+  document.getElementById('confirmModal').style.display = 'flex';
+}
+
+async function submitCreate() {
+  document.getElementById('confirmModal').style.display = 'none';
+  const res  = await fetch('/api/support/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      category: document.getElementById('ticketCategory').value,
+      subject:  document.getElementById('ticketSubject').value.trim(),
+      message:  document.getElementById('ticketMessage').value.trim()
+    })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('createModal').style.display = 'none';
+    setTimeout(() => window.location.href = '/support/' + data.ticketId, 300);
+  } else {
+    const msgEl = document.getElementById('createMsg');
+    msgEl.textContent = data.message; msgEl.style.display = 'block';
+    msgEl.style.background='rgba(239,68,68,0.1)'; msgEl.style.border='1px solid rgba(239,68,68,0.3)'; msgEl.style.color='#ef4444';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const bell=document.getElementById('notifBellBtn'),drop=document.getElementById('notifDropdown');
+  if(bell&&drop){loadNotificationData();bell.addEventListener('click',e=>{e.stopPropagation();const o=drop.classList.toggle('active');if(o)markAllAsRead();});document.addEventListener('click',e=>{if(!bell.contains(e.target)&&!drop.contains(e.target))drop.classList.remove('active');});document.getElementById('notifClearBtn').addEventListener('click',clearAllNotifications);}
+  let es=null,r=0;function conn(){if(es)es.close();es=new EventSource('/api/notifications/stream');es.onmessage=e=>{try{processNotification(JSON.parse(e.data));}catch(err){}};es.onerror=()=>{es.close();if(r++<3)setTimeout(conn,5000);};es.addEventListener('ping',()=>{r=0;});}conn();
+});
+function loadNotificationData(){var c=parseInt(localStorage.getItem('notif_unread_count')||'0');var h=JSON.parse(localStorage.getItem('notif_history')||'[]');var b=document.getElementById('notifBadge');if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}var l=document.getElementById('notifList');if(!l)return;if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

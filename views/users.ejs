@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defendia Network Defense | Sıralama</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .leader-page{flex:1;overflow-y:auto;padding:24px;}
+    .leader-wrap{width:min(1320px,100%);display:flex;flex-direction:column;gap:18px;}
+    .leader-hero{position:relative;overflow:hidden;border:1px solid rgba(56,189,248,.16);border-radius:10px;background:linear-gradient(135deg,rgba(17,24,39,.96),rgba(10,15,30,.92));padding:22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);gap:20px;align-items:end;box-shadow:0 18px 55px rgba(0,0,0,.2);}
+    .leader-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(56,189,248,.1),transparent 46%,rgba(16,185,129,.07));pointer-events:none;}
+    .leader-hero>*{position:relative;z-index:1;}
+    .leader-kicker,.panel-label{font-size:9px;font-weight:900;color:#38bdf8;letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .leader-title{margin:8px 0 8px;font-size:28px;font-weight:900;color:#f8fafc;line-height:1.05;letter-spacing:0;}
+    .leader-sub{max-width:680px;font-size:13px;line-height:1.65;color:#94a3b8;}
+    .leader-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .summary-card{background:rgba(8,12,24,.58);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:13px;}
+    .summary-card strong{display:block;font-size:21px;line-height:1;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .summary-card span{display:block;margin-top:7px;font-size:8px;font-weight:900;color:#64748b;letter-spacing:1.1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .mode-tabs{display:flex;gap:10px;flex-wrap:wrap;}
+    .mode-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:10px 18px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:#64748b;font-size:11px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+    .mode-btn .material-icons{font-size:16px;}
+    .mode-btn.active.individual{border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.12);color:#38bdf8;box-shadow:0 0 22px rgba(56,189,248,.08);}
+    .mode-btn.active.team{border-color:rgba(16,185,129,.45);background:rgba(16,185,129,.12);color:#10b981;box-shadow:0 0 22px rgba(16,185,129,.08);}
+    .leader-panel{background:rgba(17,24,39,.78);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:18px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.18);}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px;}
+    .panel-title{font-size:17px;font-weight:900;color:#f8fafc;line-height:1.2;}
+    .panel-sub{font-size:11px;color:#64748b;margin-top:4px;line-height:1.45;}
+    .podium-wrap{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:14px;align-items:end;}
+    .podium-card{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center;text-decoration:none;color:inherit;min-width:0;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));padding:18px 14px;transition:transform .25s,border-color .25s,box-shadow .25s;}
+    .podium-card::before{content:"";position:absolute;left:14px;right:14px;top:0;height:2px;background:var(--accent,#38bdf8);opacity:.65;box-shadow:0 0 24px var(--accent,#38bdf8);}
+    .podium-card:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--accent,#38bdf8) 55%,transparent);box-shadow:0 22px 50px rgba(0,0,0,.32),0 0 28px color-mix(in srgb,var(--accent,#38bdf8) 18%,transparent);}
+    .podium-card.first{padding:26px 16px;background:radial-gradient(circle at 50% 0,rgba(56,189,248,.18),transparent 34%),linear-gradient(180deg,rgba(56,189,248,.075),rgba(255,255,255,.025));}
+    .podium-rank{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-size:18px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--accent,#38bdf8);margin-bottom:12px;}
+    .podium-card.first .podium-rank{width:44px;height:44px;font-size:22px;border-color:rgba(56,189,248,.32);background:rgba(56,189,248,.1);}
+    .podium-avatar,.podium-avatar-placeholder{width:54px;height:54px;border-radius:50%;border:2px solid var(--accent,#38bdf8);box-shadow:0 0 14px color-mix(in srgb,var(--accent,#38bdf8) 35%,transparent);margin-bottom:10px;flex-shrink:0;}
+    .podium-avatar{object-fit:cover;}
+    .podium-avatar-placeholder{display:flex;align-items:center;justify-content:center;color:white;font-size:21px;font-weight:900;}
+    .podium-card.first .podium-avatar,.podium-card.first .podium-avatar-placeholder{width:70px;height:70px;font-size:27px;}
+    .podium-name{max-width:100%;font-size:13px;font-weight:900;color:#f8fafc;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .podium-level{margin:5px 0 10px;font-size:9px;color:#64748b;font-family:'JetBrains Mono',monospace;}
+    .podium-pts{font-size:20px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--accent,#38bdf8);line-height:1;}
+    .podium-label{font-size:8px;color:#475569;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-top:4px;}
+    .rank-list{display:flex;flex-direction:column;gap:8px;}
+    .rank-row{display:grid;grid-template-columns:56px minmax(240px,1.4fr) minmax(120px,.55fr) minmax(130px,.6fr) minmax(130px,.7fr) minmax(105px,.55fr);gap:12px;align-items:center;min-height:68px;padding:12px 14px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.028);transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;}
+    .rank-row:hover{transform:translateX(3px);border-color:rgba(56,189,248,.2);background:rgba(56,189,248,.035);box-shadow:0 12px 30px rgba(0,0,0,.16);}
+    .rank-row.is-me{border-color:rgba(56,189,248,.35);background:rgba(56,189,248,.07);}
+    .rank-head{min-height:auto;padding:0 14px 7px;border:0;background:transparent;color:#475569;font-size:9px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .rank-head:hover{transform:none;background:transparent;box-shadow:none;}
+    .rank-num{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);font-size:13px;font-weight:900;color:#64748b;font-family:'JetBrains Mono',monospace;}
+    .rank-num.top{color:var(--accent,#38bdf8);border-color:color-mix(in srgb,var(--accent,#38bdf8) 35%,transparent);background:color-mix(in srgb,var(--accent,#38bdf8) 10%,transparent);}
+    .operator-cell{display:flex;align-items:center;gap:11px;min-width:0;}
+    .operator-avatar,.operator-placeholder{width:38px;height:38px;border-radius:50%;border:2px solid rgba(255,255,255,.09);flex-shrink:0;}
+    .operator-avatar{object-fit:cover;}
+    .operator-placeholder{display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:900;}
+    .operator-name{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#dbeafe;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .operator-name:hover{color:#38bdf8;}
+    .self-pill{padding:2px 6px;border-radius:5px;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.24);color:#38bdf8;font-size:8px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+    .operator-level{font-size:9px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .points-block strong,.solved-block strong{display:block;font-size:15px;font-weight:900;color:#38bdf8;font-family:'JetBrains Mono',monospace;line-height:1;}
+    .points-block span,.solved-block span{display:block;margin-top:5px;font-size:8px;color:#475569;font-weight:900;letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .progress-mini{height:5px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:7px;}
+    .progress-mini-fill{height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#10b981);border-radius:999px;}
+    .team-pill{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:5px 9px;border-radius:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);font-size:10px;font-weight:800;color:#38bdf8;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+    .team-pill.muted{background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.06);color:#475569;}
+    .team-pill .material-icons{font-size:12px;}
+    .status-cell{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#475569;}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:#475569;display:inline-block;flex-shrink:0;}
+    .status-dot.online{background:#10b981;box-shadow:0 0 7px #10b981;}
+    .team-ranking-list{display:flex;flex-direction:column;gap:10px;}
+    .team-rank-card{border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.028);padding:15px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s,background .2s;}
+    .team-rank-card:hover{transform:translateY(-2px);border-color:rgba(16,185,129,.24);background:rgba(16,185,129,.035);box-shadow:0 14px 34px rgba(0,0,0,.2);}
+    .team-rank-main{display:flex;align-items:center;gap:13px;}
+    .team-rank-num{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);color:#10b981;font-size:14px;font-weight:900;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+    .team-rank-name{font-size:15px;font-weight:900;color:#f8fafc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .team-rank-sub{font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace;margin-top:3px;}
+    .team-rank-points{text-align:right;flex-shrink:0;margin-left:auto;}
+    .team-rank-points strong{display:block;font-size:19px;font-weight:900;color:#10b981;font-family:'JetBrains Mono',monospace;line-height:1;}
+    .team-rank-points span{display:block;margin-top:5px;font-size:8px;color:#475569;font-weight:900;letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .team-members{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);}
+    .team-member-avatar,.team-member-placeholder{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.1);}
+    .team-member-avatar{object-fit:cover;}
+    .team-member-placeholder{display:flex;align-items:center;justify-content:center;background:#334155;color:white;font-size:11px;font-weight:800;}
+    .empty-state{border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:34px;text-align:center;color:#64748b;font-size:12px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.02);}
+    .team-modal{display:none;position:fixed;inset:0;background:rgba(2,6,23,.88);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(14px);padding:18px;}
+    .team-modal-card{max-width:600px;width:min(600px,100%);max-height:86vh;overflow-y:auto;position:relative;background:rgba(10,15,30,.98);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:24px;}
+    .team-modal-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);color:#ef4444;cursor:pointer;font-size:20px;line-height:1;}
+    @media(max-width:1180px){.leader-hero{grid-template-columns:1fr}.rank-head{display:none}.rank-row{grid-template-columns:46px minmax(0,1fr) minmax(120px,.45fr);}.rank-row>div:nth-child(4),.rank-row>div:nth-child(5),.rank-row>div:nth-child(6){grid-column:2 / -1}.rank-row>div:nth-child(4){display:none}.rank-row>div:nth-child(6){justify-content:flex-start}}
+    @media(max-width:760px){.leader-page{padding:16px}.leader-title{font-size:23px}.leader-summary-grid,.podium-wrap{grid-template-columns:1fr}.podium-card.first{order:-1}.mode-btn{flex:1}.rank-row{grid-template-columns:40px minmax(0,1fr);gap:10px}.rank-row>div:nth-child(n+3){grid-column:2 / -1}.team-rank-main{align-items:flex-start}.team-rank-points{margin-left:0}.team-rank-main{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<%
+  const stringToColor = (str) => {
+    let hash = 0;
+    for(let i=0;i<str.length;i++) hash = str.charCodeAt(i)+((hash<<5)-hash);
+    const c = (hash&0x00FFFFFF).toString(16).toUpperCase();
+    return '#'+'00000'.substring(0,6-c.length)+c;
+  };
+  const sortedUsers = [...allUsersData].sort((a,b) => b.points - a.points);
+  const top3 = [sortedUsers[1], sortedUsers[0], sortedUsers[2]];
+  const maxRankPoints = Math.max(...sortedUsers.map(u => u.points), 1);
+  const totalPoints = sortedUsers.reduce((sum, u) => sum + (u.points || 0), 0);
+  const totalSolved = sortedUsers.reduce((sum, u) => sum + (u.solvedCount || 0), 0);
+  const currentRank = sortedUsers.findIndex(u => u.username === user.username) + 1;
+  const currentUserData = sortedUsers.find(u => u.username === user.username);
+  const teamNames = [...new Set(sortedUsers.filter(u => u.teamName).map(u => u.teamName))];
+  const getLevel = (pts) => Math.min(10, Math.floor(pts / Math.ceil(maxPoints/10)) + 1);
+  const getRankTitle = (lvl) => {
+    if(lvl >= 10) return 'ELİT MİMAR';
+    if(lvl >= 8)  return 'UZMAN OPERATÖR';
+    if(lvl >= 6)  return 'KIDEMLİ OPERATÖR';
+    if(lvl >= 4)  return 'OPERATÖR';
+    if(lvl >= 2)  return 'ÇAYLAK+';
+    return 'ÇAYLAK';
+  };
+  const podiumAccent = {1:'#38bdf8', 2:'#10b981', 3:'#a78bfa'};
+%>
+
+<div class="dash-shell">
+  <%- include('partials/sidebar-only') %>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">SIRALAMA // <span>GLOBAL_OPERATÖRLER</span></div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <main class="leader-page page-enter">
+      <div class="leader-wrap">
+        <section class="leader-hero">
+          <div>
+            <div class="leader-kicker">Sistem Hiyerarşisi</div>
+            <h1 class="leader-title">Operatör Sıralaması</h1>
+            <p class="leader-sub">
+              Kayıtlı operatörler, puan akışı, çözüm hacmi ve takım dağılımı tek bir operasyon görünümünde.
+            </p>
+            <div class="mode-tabs" style="margin-top:16px;">
+              <button id="btnIndividual" class="mode-btn active individual" onclick="setMode('individual')">
+                <span class="material-icons">person</span>Bireysel
+              </button>
+              <button id="btnTeam" class="mode-btn team" onclick="setMode('team')">
+                <span class="material-icons">groups</span>Takım
+              </button>
+            </div>
+          </div>
+
+          <div class="leader-summary-grid">
+            <div class="summary-card"><strong><%= sortedUsers.length %></strong><span>Kayıtlı Operatör</span></div>
+            <div class="summary-card"><strong style="color:#38bdf8;"><%= totalPoints.toLocaleString() %></strong><span>Toplam Puan</span></div>
+            <div class="summary-card"><strong style="color:#10b981;"><%= totalSolved %></strong><span>Toplam Çözüm</span></div>
+            <div class="summary-card"><strong style="color:#a78bfa;"><%= currentRank ? '#'+currentRank : '—' %></strong><span>Senin Sıran</span></div>
+          </div>
+        </section>
+
+        <section id="panelIndividual" class="leader-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-label">Top 3</div>
+              <div class="panel-title">Podyum</div>
+              <div class="panel-sub">En yüksek puanlı operatörler</div>
+            </div>
+            <% if(currentUserData) { %>
+              <div class="team-pill"><span class="material-icons">my_location</span>#<%= currentRank %> · <%= currentUserData.points.toLocaleString() %> puan</div>
+            <% } %>
+          </div>
+
+          <div class="podium-wrap">
+            <% top3.forEach((u, i) => {
+              if(!u) return;
+              const actualRank = [2,1,3][i];
+              const isFirst = actualRank === 1;
+              const lvl = getLevel(u.points);
+              const accent = podiumAccent[actualRank];
+            %>
+              <a href="/profile/<%= u.username %>" class="podium-card <%= isFirst ? 'first' : '' %> fade-in-up stagger-<%= i+1 %>" style="--accent:<%= accent %>;">
+                <div class="podium-rank">#<%= actualRank %></div>
+                <% if(u.avatar) { %>
+                  <img src="<%= u.avatar %>" class="podium-avatar" alt="<%= u.username %>">
+                <% } else { %>
+                  <div class="podium-avatar-placeholder" style="background:<%= stringToColor(u.username) %>;"><%= u.username[0].toUpperCase() %></div>
+                <% } %>
+                <div class="podium-name"><%= u.username.toUpperCase() %></div>
+                <div class="podium-level">SEVİYE <%= lvl %> · <%= getRankTitle(lvl) %></div>
+                <div class="podium-pts"><%= u.points.toLocaleString() %></div>
+                <div class="podium-label">Toplam Puan</div>
+              </a>
+            <% }) %>
+          </div>
+
+          <div class="panel-head" style="margin-top:22px;">
+            <div>
+              <div class="panel-label">Global Liste</div>
+              <div class="panel-title">Tüm Operatörler</div>
+              <div class="panel-sub"><%= teamNames.length %> takım, <%= sortedUsers.length %> operatör gösteriliyor</div>
+            </div>
+          </div>
+
+          <div class="rank-list">
+            <div class="rank-row rank-head">
+              <div>Sıra</div>
+              <div>Operatör</div>
+              <div>Puan</div>
+              <div>Görev</div>
+              <div>Takım</div>
+              <div>Durum</div>
+            </div>
+
+            <% sortedUsers.forEach((target, index) => {
+              const rank = index + 1;
+              const isMe = target.username === user.username;
+              const lvl = getLevel(target.points);
+              const accent = podiumAccent[rank] || '#64748b';
+              const pct = Math.round(((target.points || 0) / maxRankPoints) * 100);
+            %>
+              <div class="rank-row <%= isMe ? 'is-me' : '' %>" style="--accent:<%= accent %>;">
+                <div class="rank-num <%= rank <= 3 ? 'top' : '' %>">#<%= rank %></div>
+                <div class="operator-cell">
+                  <% if(target.avatar) { %>
+                    <img src="<%= target.avatar %>" class="operator-avatar" alt="<%= target.username %>">
+                  <% } else { %>
+                    <div class="operator-placeholder" style="background:<%= stringToColor(target.username) %>;"><%= target.username[0].toUpperCase() %></div>
+                  <% } %>
+                  <div style="min-width:0;">
+                    <a href="/profile/<%= target.username %>" class="operator-name">
+                      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= target.username %></span>
+                      <% if(isMe) { %><span class="self-pill">SEN</span><% } %>
+                    </a>
+                    <div class="operator-level">Seviye <%= lvl %> · <%= getRankTitle(lvl) %></div>
+                  </div>
+                </div>
+                <div class="points-block">
+                  <strong><%= target.points.toLocaleString() %></strong>
+                  <span>Puan</span>
+                  <div class="progress-mini"><div class="progress-mini-fill" style="width:<%= pct %>%;"></div></div>
+                </div>
+                <div class="solved-block">
+                  <strong style="color:#10b981;"><%= target.solvedCount %></strong>
+                  <span>Görev</span>
+                </div>
+                <div>
+                  <% if(target.teamName) { %>
+                    <span class="team-pill"><span class="material-icons">groups</span><%= target.teamName %></span>
+                  <% } else { %>
+                    <span class="team-pill muted"><span class="material-icons">person_off</span>Takımı yok</span>
+                  <% } %>
+                </div>
+                <div class="status-cell" id="status-<%= target.username %>">
+                  <span class="status-dot status-dot-<%= target.username %>"></span>
+                  <span class="status-text-<%= target.username %>">—</span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </section>
+
+        <section id="panelTeam" class="leader-panel" style="display:none;">
+          <div class="panel-head">
+            <div>
+              <div class="panel-label" style="color:#10b981;">Takım Sıralaması</div>
+              <div class="panel-title">Ekip Performansı</div>
+              <div class="panel-sub">Takım puanı, üye sayısı ve kadro görünümü</div>
+            </div>
+          </div>
+          <div id="teamRankingList">
+            <div class="empty-state">Yükleniyor...</div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="teamDetailModal" class="team-modal">
+  <div class="team-modal-card">
+    <button onclick="closeTeamModal()" class="team-modal-close">×</button>
+    <div id="teamDetailContent"></div>
+  </div>
+</div>
+
+<script>
+let currentMode = 'individual';
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  const individualPanel = document.getElementById('panelIndividual');
+  const teamPanel = document.getElementById('panelTeam');
+  const btnI = document.getElementById('btnIndividual');
+  const btnT = document.getElementById('btnTeam');
+
+  individualPanel.style.display = mode === 'individual' ? 'block' : 'none';
+  teamPanel.style.display = mode === 'team' ? 'block' : 'none';
+  btnI.classList.toggle('active', mode === 'individual');
+  btnT.classList.toggle('active', mode === 'team');
+
+  if (mode === 'team') loadTeamRanking();
+}
+
+async function loadTeamRanking() {
+  const container = document.getElementById('teamRankingList');
+  if (!container || container.dataset.loaded === '1') return;
+
+  try {
+    const data = await (await fetch('/api/teams/ranking')).json();
+    if (!data.length) {
+      container.innerHTML = '<div class="empty-state">Henüz takım yok.</div>';
+      container.dataset.loaded = '1';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="team-ranking-list">
+        ${data.map((team, idx) => `
+          <div class="team-rank-card" onclick="openTeamDetail('${escapeHtml(team.id)}')">
+            <div class="team-rank-main">
+              <div class="team-rank-num">#${idx + 1}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="team-rank-name">${escapeHtml(team.name)}</div>
+                <div class="team-rank-sub">${team.memberCount}/4 üye · Aktif kadro</div>
+              </div>
+              <div class="team-rank-points">
+                <strong>${Number(team.points || 0).toLocaleString()}</strong>
+                <span>Toplam Puan</span>
+              </div>
+            </div>
+            <div class="team-members">
+              ${(team.members || []).map(m => m.avatar
+                ? `<img src="${escapeHtml(m.avatar)}" title="${escapeHtml(m.username)}" class="team-member-avatar">`
+                : `<div title="${escapeHtml(m.username)}" class="team-member-placeholder">${escapeHtml(m.username || '?').charAt(0).toUpperCase()}</div>`
+              ).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.dataset.loaded = '1';
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state" style="color:#ef4444;">Yüklenemedi.</div>';
+  }
+}
+
+async function openTeamDetail(teamId) {
+  const modal = document.getElementById('teamDetailModal');
+  const content = document.getElementById('teamDetailContent');
+  modal.style.display = 'flex';
+  content.innerHTML = '<div class="empty-state">Yükleniyor...</div>';
+
+  try {
+    const data = await (await fetch('/api/teams/detail/' + encodeURIComponent(teamId))).json();
+    if (!data.success) {
+      content.innerHTML = '<div class="empty-state" style="color:#ef4444;">Yüklenemedi.</div>';
+      return;
+    }
+
+    const { team, members } = data;
+    content.innerHTML = `
+      <div style="margin-bottom:18px;padding-right:34px;">
+        <div class="panel-label" style="color:#10b981;">Takım Detayı</div>
+        <div class="panel-title" style="font-size:24px;margin-top:6px;">${escapeHtml(team.name)}</div>
+        <div class="panel-sub">${Number(team.points || 0).toLocaleString()} toplam puan · ${team.memberCount}/4 üye</div>
+      </div>
+      <div class="rank-list">
+        ${(members || []).map((m, i) => `
+          <div class="rank-row" style="grid-template-columns:46px minmax(0,1fr) 120px;">
+            <div class="rank-num ${i < 3 ? 'top' : ''}">#${i + 1}</div>
+            <div class="operator-cell">
+              ${m.avatar
+                ? `<img src="${escapeHtml(m.avatar)}" class="operator-avatar">`
+                : `<div class="operator-placeholder" style="background:#334155;">${escapeHtml(m.username || '?').charAt(0).toUpperCase()}</div>`
+              }
+              <div style="min-width:0;">
+                <a href="/profile/${encodeURIComponent(m.username)}" class="operator-name">
+                  <span>${escapeHtml(m.username)}</span>
+                  ${m.isLeader ? '<span class="self-pill" style="color:#fbbf24;border-color:rgba(251,191,36,.28);background:rgba(251,191,36,.1);">LİDER</span>' : ''}
+                </a>
+                <div class="operator-level">${m.solvedCount} görev çözüldü</div>
+              </div>
+            </div>
+            <div class="points-block" style="text-align:right;">
+              <strong>${Number(m.points || 0).toLocaleString()}</strong>
+              <span>${m.online ? 'Çevrimiçi' : 'Çevrimdışı'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch(e) {
+    content.innerHTML = '<div class="empty-state" style="color:#ef4444;">Yüklenemedi.</div>';
+  }
+}
+
+function closeTeamModal() {
+  document.getElementById('teamDetailModal').style.display = 'none';
+}
+
+document.getElementById('teamDetailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeTeamModal();
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTeamModal(); });
+
+async function updateOnlineStatus() {
+  try {
+    const data = await (await fetch('/api/leaderboard')).json();
+    data.forEach(u => {
+      const dot  = document.querySelector('.status-dot-' + u.username);
+      const text = document.querySelector('.status-text-' + u.username);
+      if(dot && text) {
+        dot.classList.toggle('online', !!u.online);
+        text.style.color = u.online ? '#10b981' : '#475569';
+        text.textContent = u.online ? 'Çevrimiçi' : 'Çevrimdışı';
+      }
+    });
+  } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  let es=null, r=0;
+  function conn() {
+    if(es) es.close();
+    es = new EventSource('/api/notifications/stream');
+    es.onopen = () => setTimeout(updateOnlineStatus, 500);
+    es.onmessage = e => { try { processNotification(JSON.parse(e.data)); } catch(err) {} };
+    es.onerror = () => { es.close(); if(r++<3) setTimeout(conn, 5000); };
+    es.addEventListener('ping', () => { r=0; updateOnlineStatus(); });
+  }
+  conn();
+  setInterval(updateOnlineStatus, 10000);
+
+  const bell = document.getElementById('notifBellBtn');
+  const drop = document.getElementById('notifDropdown');
+  if(bell && drop) {
+    loadNotificationData();
+    bell.addEventListener('click', e => { e.stopPropagation(); const o = drop.classList.toggle('active'); if(o) markAllAsRead(); });
+    document.addEventListener('click', e => { if(!bell.contains(e.target)&&!drop.contains(e.target)) drop.classList.remove('active'); });
+    document.getElementById('notifClearBtn').addEventListener('click', clearAllNotifications);
+  }
+});
+
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

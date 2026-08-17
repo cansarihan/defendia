@@ -1,0 +1,385 @@
+/* ============================================
+   HEADER.CSS — Navigasyon ve Arama Bileşeni
+   ============================================ */
+
+/* Navigasyon Ana Stilleri */
+.nav-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  height: 65px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.nav-logo-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  transition: 0.3s;
+  min-width: fit-content;
+}
+
+.nav-logo-img {
+  height: 110px;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
+  transition: 0.3s;
+}
+
+.nav-logo-link:hover .nav-logo-img {
+  filter: drop-shadow(0 0 15px #38bdf8);
+  transform: scale(1.05);
+}
+
+/* Buton Tasarımları */
+.nav-links-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.global-nav-btn {
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  color: #94a3b8;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Admin Özel Butonu (Neon Sarı) */
+.admin-nav-btn {
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.05) !important;
+}
+
+.admin-nav-btn:hover {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+  color: #fff !important;
+}
+
+.global-nav-btn.red-btn {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.global-nav-btn:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+/* Aktif Sayfa - Elektrikli Yeşil */
+.nav-active {
+  border: 1px solid #10b981 !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4), inset 0 0 5px rgba(16, 185, 129, 0.2);
+  animation: electricBlink 1.5s infinite alternate;
+}
+
+@keyframes electricBlink {
+  0% {
+    opacity: 0.8;
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.nav-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 5px;
+}
+
+/* ============================================
+   ARAMA BİLEŞENİ (Görev 4'te doldurulacak)
+   ============================================ */
+
+.search-wrapper {
+  position: relative;
+  flex: 0 1 400px;
+  margin: 0 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 8px;
+  color: #f1f5f9;
+  font-size: 13px;
+  font-family: var(--font-main);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--blue);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+.search-input::placeholder {
+  color: #64748b;
+}
+
+.search-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 2000;
+}
+
+.search-dropdown.active {
+  display: block;
+}
+
+.search-category {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-category:last-child {
+  border-bottom: none;
+}
+
+.search-category-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.search-result-item {
+  padding: 10px 12px;
+  margin: 4px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  color: #cbd5e1;
+}
+
+.search-result-item:hover {
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--blue);
+}
+
+.search-result-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.search-result-meta {
+  font-size: 11px;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.search-no-results {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* ============================================
+   BİLDİRİM ZİLİ
+   ============================================ */
+
+.notif-bell-wrapper {
+  position: relative;
+}
+
+.notif-bell-btn {
+  position: relative;
+  text-decoration: none;
+  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.notif-bell-btn:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.notif-badge.hidden {
+  display: none;
+}
+
+.notif-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 2000;
+  padding: 15px;
+}
+
+.notif-dropdown.active {
+  display: block;
+}
+
+.notif-dropdown-header {
+  font-size: 13px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.notif-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notif-empty {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.notif-item {
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--blue);
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+.notif-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.notif-item-message {
+  margin-bottom: 4px;
+}
+
+.notif-item-time {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.notif-clear-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notif-clear-btn:hover {
+  background: var(--red);
+  color: white;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-wrapper {
+    padding: 0 20px;
+  }
+
+  .search-wrapper {
+    display: none;
+  }
+
+  .nav-logo-img {
+    height: 80px;
+  }
+}

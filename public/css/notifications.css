@@ -1,0 +1,159 @@
+/* ============================================
+   NOTIFICATIONS.CSS — Popup Bildirim Sistemi
+   ============================================ */
+
+/* Popup Container */
+.notif-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 360px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999;
+  transition: var(--transition);
+}
+
+/* Severity Colors (Sol Kenarlık) */
+.notif-popup.info {
+  border-left: 4px solid var(--blue);
+}
+
+.notif-popup.success {
+  border-left: 4px solid var(--green);
+}
+
+.notif-popup.warning {
+  border-left: 4px solid var(--yellow);
+}
+
+.notif-popup.danger {
+  border-left: 4px solid var(--red);
+}
+
+/* Icon */
+.notif-popup-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notif-popup.info .notif-popup-icon {
+  color: var(--blue);
+}
+
+.notif-popup.success .notif-popup-icon {
+  color: var(--green);
+}
+
+.notif-popup.warning .notif-popup-icon {
+  color: var(--yellow);
+}
+
+.notif-popup.danger .notif-popup-icon {
+  color: var(--red);
+}
+
+/* Text Content */
+.notif-popup-text {
+  flex: 1;
+  color: #f1f5f9;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Close Button */
+.notif-popup-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.notif-popup-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Progress Bar */
+.notif-popup-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--blue);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  animation: progressShrink 7s linear forwards;
+}
+
+.notif-popup.info .notif-popup-progress {
+  background: var(--blue);
+}
+
+.notif-popup.success .notif-popup-progress {
+  background: var(--green);
+}
+
+.notif-popup.warning .notif-popup-progress {
+  background: var(--yellow);
+}
+
+.notif-popup.danger .notif-popup-progress {
+  background: var(--red);
+}
+
+@keyframes progressShrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Vertical Stacking (Maksimum 3 popup) */
+.notif-popup:nth-child(1) {
+  bottom: 24px;
+}
+
+.notif-popup:nth-child(2) {
+  bottom: calc(24px + 90px + 12px);
+}
+
+.notif-popup:nth-child(3) {
+  bottom: calc(24px + 180px + 24px);
+}
+
+/* Fade Out Animation */
+.notif-popup.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .notif-popup {
+    width: calc(100vw - 48px);
+    right: 24px;
+    left: 24px;
+  }
+}

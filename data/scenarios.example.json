@@ -1,0 +1,99 @@
+{
+    "nanotech": {
+        "id": "nanotech",
+        "title": "Nano Tech Sızma Operasyonu",
+        "description": "Aylardır peşinde olduğumuz ve küresel çapta şirketlere kök söktüren \"B1tW3aver\" kod adlı hacker, bugüne kadar dijital dünyada tek bir iz bile bırakmadı. Kullandığı şifreleme algoritmaları kusursuz, bağlantıları ise tamamen anonim. Ancak her insanın fiziksel bir zafiyeti vardır: Açlık.\nDün gece yeraltı forumlarında paylaştığı, yeni bir şirketi hacklediğini duyurduğu o meşhur ekran görüntüsünde ufak bir detay gözümüze çarptı. Monitörün hemen yanında duran bir not kağıdında şu yazıyordu:\n\"Şifrelemeyi bitirmek üzereyim. NeonTech & Noodle'ın o meşhur ekstra acılı Cyber-Ramen'i olmadan bu gece bitmez. Yine sipariş geçiyorum. #GeceMesaisi\"\nSiber istihbarat birimimiz, bu küçük ipucunu takip ederek hedefin \"NeonTech & Noodle\" adında, teknoloji meraklılarına hizmet veren yerel bir restoranın online sipariş sistemini kullandığını tespit etti.",
+        "banner": "/uploads/scenarios/banner-1774127794864-251008838.jpg",
+        "difficulty": "Orta",
+        "points": 600,
+        "vmid": 801,
+        "tasks": [
+            {
+                "id": "1",
+                "title": "Token",
+                "question": "Token hangi algoritmayla imzalanmış?\n",
+                "points": 50,
+                "flag": "REDACTED_FLAG",
+                "hint": "Ipucu buraya"
+            },
+            {
+                "id": "2",
+                "title": "Hacker ?",
+                "question": "Hackerin gerçek adı nedir?",
+                "points": 75,
+                "flag": "REDACTED_FLAG",
+                "hint": "Ipucu buraya"
+            },
+            {
+                "id": "3",
+                "title": "Flag",
+                "question": "Sisteme sızdıktan sonra gizli dizinde bulunan session token'ı decode et. Flag nedir?",
+                "points": 100,
+                "flag": "REDACTED_FLAG",
+                "hint": "Ipucu buraya"
+            },
+            {
+                "id": "4",
+                "title": "Dizin",
+                "question": "Sistemde yetki yükseltmek için kullanılan yazılımın tam yolu nedir?",
+                "points": 100,
+                "flag": "REDACTED_FLAG",
+                "hint": "Ipucu buraya"
+            },
+            {
+                "id": "5",
+                "title": "Root",
+                "question": "Root dizinindeki gizli dosyanın içindeki flagi bul. ",
+                "points": 125,
+                "flag": "REDACTED_FLAG",
+                "hint": "Ipucu buraya"
+            }
+        ]
+    },
+    "echelon": {
+        "id": "echelon",
+        "title": "Echelon",
+        "description": "Siber güvenlik alanında son dönemde adını hızla duyuran Aetheron Dynamics, kurumlara gelişmiş veri analiz ve koruma hizmetleri sunduğunu iddia eden bir teknoloji şirketidir. Ancak yapılan bazı bağımsız incelemeler, şirketin sistemlerinde alışılmadık veri hareketleri olduğunu ortaya koymuştur.\n\nPlatform üzerinde işlenen bazı verilerin sonradan değiştirildiği ve kullanıcıların göremediği gizli kayıtların tutulduğu fark edilmiştir. Ayrıca sistemde, herkese açık olmayan ve yalnızca belirli erişim seviyelerine sahip kullanıcıların ulaşabildiği ek bir altyapının varlığına dair izler bulunmuştur.\n\nŞirketin dışarıya sunduğu güvenli ve şeffaf imajın aksine, arka planda farklı bir operasyon yürütüldüğünden şüphelenilmektedir.\n\nYapılan analizlerde, bu gizli yapının tek bir isim etrafında toplandığı görülmüştür:\n\n“Echelon Core”\n\nBu yapının ne olduğu ve ne amaçla kullanıldığı hâlâ bilinmemektedir.\n\nGöreviniz, şirketin arka planda yürüttüğü gerçek operasyonu açığa çıkarmak!",
+        "vmid": 802,
+        "difficulty": "Orta",
+        "points": 500,
+        "banner": "/uploads/scenarios/banner-1776780694354-947213372.png",
+        "tasks": [
+            {
+                "id": "1776780716944",
+                "title": "Founder",
+                "question": "Aetheron Dynamics'i kuran kişinin adı nedir?",
+                "flag": "REDACTED_FLAG",
+                "points": 15
+            },
+            {
+                "id": "1776780743452",
+                "title": "Contact",
+                "question": "Sistemde kayıtlı Intelligence departmanı çalışanının kurumsal e-posta adresi nedir?",
+                "flag": "REDACTED_FLAG",
+                "points": 15
+            },
+            {
+                "id": "1776780763177",
+                "title": "Access",
+                "question": "Echelon Core sisteminin dahili erişim kodu nedir?",
+                "flag": "REDACTED_FLAG",
+                "points": 20
+            },
+            {
+                "id": "1776780783473",
+                "title": "Notepad",
+                "question": "Echelon Core operasyon kayıt defterinde listelenen ilk operasyonun adı nedir?",
+                "flag": "REDACTED_FLAG",
+                "points": 25
+            },
+            {
+                "id": "1776780800531",
+                "title": "Directory",
+                "question": "Sistemde tanımlı echelon kullanıcısının dizini nedir?",
+                "flag": "REDACTED_FLAG",
+                "points": 50
+            }
+        ]
+    }
+}

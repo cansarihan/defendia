@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= ticket.subject %> | Destek</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    .support-detail-page{flex:1;overflow-y:auto;padding:26px;}
+    .support-detail-wrap{width:min(1050px,100%);display:flex;flex-direction:column;gap:16px;}
+    .detail-card{background:rgba(17,24,39,0.78);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:20px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,0.18);}
+    .detail-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+    .detail-kicker{font-size:9px;font-weight:800;color:#38bdf8;letter-spacing:2px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:8px;}
+    .detail-title{font-size:21px;font-weight:900;color:#f8fafc;line-height:1.25;word-break:break-word;}
+    .detail-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
+    .cat-badge,.status-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.8px;white-space:nowrap;}
+    .cat-badge{background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.25);}
+    .detail-date{font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace;}
+    .detail-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    .support-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:9px 14px;border-radius:8px;border:1px solid transparent;font-size:11px;font-weight:800;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.2s;text-decoration:none;white-space:nowrap;}
+    .support-btn .material-icons{font-size:15px;}
+    .support-btn.primary{background:rgba(56,189,248,0.14);border-color:rgba(56,189,248,0.38);color:#38bdf8;}
+    .support-btn.primary:hover{background:rgba(56,189,248,0.22);}
+    .support-btn.danger{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.28);color:#ef4444;}
+    .support-btn.danger:hover{background:rgba(239,68,68,0.18);}
+    .support-btn.ghost{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.08);color:#94a3b8;}
+    .thread{display:flex;flex-direction:column;gap:14px;}
+    .message-row{display:flex;gap:12px;align-items:flex-start;}
+    .message-row.admin{flex-direction:row-reverse;}
+    .message-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
+    .message-avatar.user{background:#334155;color:#fff;border:2px solid rgba(56,189,248,0.3);}
+    .message-avatar.admin{background:rgba(251,191,36,0.15);color:#fbbf24;border:2px solid rgba(251,191,36,0.4);}
+    .message-body{flex:1;min-width:0;}
+    .message-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .message-row.admin .message-head{justify-content:flex-end;}
+    .message-name{font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+    .message-name.user{color:#38bdf8}.message-name.admin{color:#fbbf24}
+    .message-bubble{padding:14px 16px;font-size:13px;color:#cbd5e1;line-height:1.7;white-space:pre-wrap;border-radius:0 10px 10px 10px;background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);}
+    .message-row.admin .message-bubble{border-radius:10px 0 10px 10px;background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.2);}
+    .reply-textarea{width:100%;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.09);color:white;padding:11px 12px;border-radius:8px;outline:none;font-size:13px;resize:none;box-sizing:border-box;line-height:1.6;font-family:'Inter',sans-serif;}
+    .reply-textarea:focus{border-color:rgba(56,189,248,0.42);}
+    .closed-state{text-align:center;padding:24px;color:#64748b;font-size:12px;font-family:'JetBrains Mono',monospace;background:rgba(17,24,39,0.5);border-radius:10px;border:1px solid rgba(255,255,255,0.05);}
+    @media (max-width:720px){.support-detail-page{padding:16px}.detail-title{font-size:18px}.detail-actions,.detail-actions .support-btn{width:100%}.message-row,.message-row.admin{flex-direction:column}.message-row.admin .message-head{justify-content:flex-start}}
+  </style>
+</head>
+<body>
+<div class="dash-shell">
+  <%- include('partials/sidebar-only') %>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">
+          <a href="/support" style="color:#475569;text-decoration:none;">DESTEK</a>
+          <span style="margin:0 6px;color:#334155;">/</span>
+          <span style="color:#38bdf8;"><%= ticket.subject.length > 40 ? ticket.subject.substring(0,39)+'…' : ticket.subject %></span>
+        </div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <div class="support-detail-page page-enter">
+      <div class="support-detail-wrap">
+
+      <!-- Ticket Başlık -->
+      <div class="detail-card">
+        <div class="detail-header">
+          <div>
+            <div class="detail-kicker">Destek Talebi</div>
+            <div class="detail-title"><%= ticket.subject %></div>
+            <div class="detail-meta">
+              <span class="cat-badge"><%= ticket.category %></span>
+              <span class="detail-date"><%= new Date(ticket.createdAt).toLocaleString('tr-TR') %></span>
+            </div>
+          </div>
+          <%
+            const statusMap = { open:'Açık', answered:'Yanıtlandı', closed:'Kapalı' };
+            const statusColors = { open:'#38bdf8', answered:'#10b981', closed:'#475569' };
+            const sc = statusColors[ticket.status] || '#38bdf8';
+          %>
+          <div class="detail-actions">
+            <span class="status-badge" style="background:<%= sc %>18;color:<%= sc %>;border:1px solid <%= sc %>44;">
+              <span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>
+              <%= statusMap[ticket.status] || 'Açık' %>
+            </span>
+            <% if(ticket.status !== 'closed') { %>
+            <button onclick="closeTicket()" class="support-btn ghost">
+              <span class="material-icons">lock</span>Kapat
+            </button>
+            <% } %>
+            <button onclick="deleteTicket()" class="support-btn danger">
+              <span class="material-icons">delete</span>Sil
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mesajlar -->
+      <div class="thread">
+
+        <!-- İlk mesaj (kullanıcı) -->
+        <div class="message-row">
+          <div class="message-avatar user">
+            <%= user.username[0].toUpperCase() %>
+          </div>
+          <div class="message-body">
+            <div class="message-head">
+              <span class="message-name user"><%= ticket.username %></span>
+              <span class="detail-date"><%= new Date(ticket.createdAt).toLocaleString('tr-TR') %></span>
+            </div>
+            <div class="message-bubble"><%= ticket.message %></div>
+          </div>
+        </div>
+
+        <!-- Yanıtlar -->
+        <% ticket.replies.forEach(r => {
+          const isAdmin = r.from === 'admin';
+        %>
+        <div class="message-row <%= isAdmin ? 'admin' : '' %>">
+          <div class="message-avatar <%= isAdmin ? 'admin' : 'user' %>">
+            <%= r.username[0].toUpperCase() %>
+          </div>
+          <div class="message-body">
+            <div class="message-head">
+              <% if(isAdmin) { %><span class="detail-date"><%= new Date(r.createdAt).toLocaleString('tr-TR') %></span><% } %>
+              <span class="message-name <%= isAdmin ? 'admin' : 'user' %>"><%= r.username %><%= isAdmin ? ' · Admin' : '' %></span>
+              <% if(!isAdmin) { %><span class="detail-date"><%= new Date(r.createdAt).toLocaleString('tr-TR') %></span><% } %>
+            </div>
+            <div class="message-bubble"><%= r.message %></div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+
+      <!-- Yanıt Formu -->
+      <% if(ticket.status !== 'closed') { %>
+      <div class="detail-card">
+        <div class="detail-kicker" style="color:#64748b;">Yanıt Yaz</div>
+        <textarea id="replyMsg" rows="4" placeholder="Yanıtınızı yazın..." class="reply-textarea"></textarea>
+        <div id="replyMsgEl" style="display:none;padding:8px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;margin-top:8px;"></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+          <button onclick="submitReply()" class="support-btn primary">
+            <span class="material-icons">send</span>Gönder
+          </button>
+        </div>
+      </div>
+      <% } else { %>
+      <div class="closed-state">
+        Bu destek talebi kapatılmıştır.
+      </div>
+      <% } %>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TICKET_ID = '<%= ticket.id %>';
+
+async function submitReply() {
+  const msg = document.getElementById('replyMsg').value.trim();
+  const el  = document.getElementById('replyMsgEl');
+  if (!msg) { el.textContent='Mesaj yazın.'; el.style.display='block'; el.style.color='#ef4444'; return; }
+  const res  = await fetch('/api/support/reply', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ ticketId: TICKET_ID, message: msg }) });
+  const data = await res.json();
+  if (data.success) location.reload();
+  else { el.textContent = data.message || 'Hata!'; el.style.display='block'; el.style.color='#ef4444'; }
+}
+
+async function closeTicket() {
+  if (!confirm('Bu destek talebini kapatmak istediğinize emin misiniz?')) return;
+  const res = await fetch('/api/support/close', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ ticketId: TICKET_ID }) });
+  if ((await res.json()).success) location.reload();
+}
+
+async function deleteTicket() {
+  if (!confirm('Bu destek talebini kalıcı olarak silmek istediğinize emin misiniz?')) return;
+  const res = await fetch('/api/support/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ ticketId: TICKET_ID }) });
+  const data = await res.json();
+  if (data.success) window.location.href = '/support';
+  else alert(data.message || 'Silme işlemi başarısız.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const bell=document.getElementById('notifBellBtn'),drop=document.getElementById('notifDropdown');
+  if(bell&&drop){loadNotificationData();bell.addEventListener('click',e=>{e.stopPropagation();const o=drop.classList.toggle('active');if(o)markAllAsRead();});document.addEventListener('click',e=>{if(!bell.contains(e.target)&&!drop.contains(e.target))drop.classList.remove('active');});document.getElementById('notifClearBtn').addEventListener('click',clearAllNotifications);}
+  let es=null,r=0;function conn(){if(es)es.close();es=new EventSource('/api/notifications/stream');es.onmessage=e=>{try{processNotification(JSON.parse(e.data));}catch(err){}};es.onerror=()=>{es.close();if(r++<3)setTimeout(conn,5000);};es.addEventListener('ping',()=>{r=0;});}conn();
+});
+function loadNotificationData(){var c=parseInt(localStorage.getItem('notif_unread_count')||'0');var h=JSON.parse(localStorage.getItem('notif_history')||'[]');var b=document.getElementById('notifBadge');if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}var l=document.getElementById('notifList');if(!l)return;if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

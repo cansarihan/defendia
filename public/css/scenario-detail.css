@@ -1,0 +1,283 @@
+/* ============================================
+   SCENARIO-DETAIL.CSS — Senaryo Detay Sayfası
+   ============================================ */
+
+/* Ana Yapı */
+body {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Matrix Canvas - PRESERVED */
+#matrix {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.12;
+}
+
+/* Header Bar */
+.header-bar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 65px;
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 50px;
+  box-sizing: border-box;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #94a3b8;
+}
+
+.breadcrumb a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+/* Ana Wrapper */
+.main-wrapper {
+  display: flex;
+  width: 100%;
+  margin-top: 65px;
+  height: calc(100vh - 65px);
+}
+
+/* İçerik Alanı */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 50px;
+  box-sizing: border-box;
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* Senaryo Banner */
+.scenario-banner {
+  width: 100%;
+  height: 260px;
+  border-radius: 15px;
+  overflow: hidden;
+  margin-bottom: 30px;
+  border: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.scenario-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--bg), transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 30px;
+}
+
+/* Görev Kartları - Glassmorphism */
+.htb-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 12px;
+  border: 1px solid #334155;
+  margin-bottom: 20px;
+  transition: 0.3s ease;
+}
+
+.htb-card.active {
+  border-color: var(--blue);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}
+
+.htb-card.solved {
+  border-color: var(--green);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.htb-card.locked {
+  opacity: 0.3;
+  pointer-events: none;
+  border-style: dashed;
+}
+
+.task-header {
+  padding: 15px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.task-content {
+  padding: 25px;
+}
+
+/* Flag Giriş Alanı */
+.flag-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.flag-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #334155;
+  color: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  outline: none;
+}
+
+.submit-btn {
+  background: var(--blue);
+  color: #0f172a;
+  border: none;
+  padding: 0 25px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover {
+  box-shadow: var(--glow-blue);
+}
+
+/* Yan Panel */
+.sidebar-area {
+  width: 380px;
+  padding: 30px;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pve-timer {
+  background: #000;
+  color: var(--blue);
+  font-family: var(--font-mono);
+  font-size: 32px;
+  text-align: center;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid var(--blue);
+  text-shadow: 0 0 10px var(--blue);
+  transition: 0.3s;
+}
+
+#targetIp {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+
+#targetIp:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: white;
+}
+
+/* Booting Overlay */
+#bootingOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.9);
+  z-index: 5000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.loader-bar {
+  width: 300px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.loader-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--blue);
+  box-shadow: 0 0 15px var(--blue);
+  transition: width 0.5s;
+}
+
+/* Hint Modal */
+.hint-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.85);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+
+.hint-modal.active {
+  display: flex;
+}
+
+.hint-content {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--blue);
+  border-radius: 15px;
+  padding: 30px;
+  width: 400px;
+  text-align: center;
+}
+
+/* Toast Container */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* Slide In Animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

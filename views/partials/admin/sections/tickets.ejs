@@ -1,0 +1,33 @@
+<div id="viewTickets" class="menu-section">
+
+  <div class="admin-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="admin-card-title" style="margin-bottom:0;"><span class="material-icons" style="color:#38bdf8;">support_agent</span> Destek Talepleri</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="ticketFilterStatus" onchange="loadAdminTickets()" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:white;padding:6px 10px;border-radius:6px;font-size:11px;outline:none;font-family:'JetBrains Mono',monospace;">
+          <option value="">Tümü</option>
+          <option value="open">Açık</option>
+          <option value="answered">Yanıtlandı</option>
+          <option value="closed">Kapalı</option>
+        </select>
+        <button onclick="loadAdminTickets()" class="admin-btn admin-btn-reset" style="padding:7px 14px;">
+          <span class="material-icons" style="font-size:13px;">refresh</span> Yenile
+        </button>
+      </div>
+    </div>
+    <div id="adminTicketsList">
+      <div style="text-align:center;padding:32px;color:#475569;font-family:'JetBrains Mono',monospace;font-size:12px;">Yükleniyor...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ticket Detay Modal (Admin) -->
+<div id="ticketDetailModal" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.9);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(14px);"
+  onclick="if(event.target===this)this.style.display='none'">
+  <div style="max-width:680px;width:94%;background:rgba(10,15,30,0.98);border:1px solid rgba(56,189,248,0.2);border-radius:16px;padding:28px;max-height:88vh;overflow-y:auto;position:relative;">
+    <button onclick="document.getElementById('ticketDetailModal').style.display='none'"
+      style="position:absolute;top:14px;right:16px;background:none;border:none;color:#ef4444;font-size:22px;cursor:pointer;line-height:1;">×</button>
+    <div id="ticketDetailContent"></div>
+  </div>
+</div>

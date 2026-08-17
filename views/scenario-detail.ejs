@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= scenario.title %> | Defendia Network Defense</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/notifications.css">
+  <script src="/js/notifications.js"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script>window.__searchData = <%- JSON.stringify(searchData) %>;</script>
+  <style>
+    /* ── Task Kartları — glass + animasyon ── */
+    .task-card {
+      background: rgba(17,24,39,0.78);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(6px);
+      position: relative;
+      animation: taskCardIdle 5s ease-in-out infinite;
+    }
+    .task-card:nth-child(2n) { animation-delay: -1.5s; }
+    .task-card:nth-child(3n) { animation-delay: -3s; }
+
+    @keyframes taskCardIdle {
+      0%,100% { box-shadow: 0 0 0 1px rgba(56,189,248,0.12), 0 4px 12px rgba(0,0,0,0.2); }
+      50%      { box-shadow: 0 0 0 1px rgba(167,139,250,0.18), 0 4px 16px rgba(0,0,0,0.25); }
+    }
+    .task-card:hover:not(.locked) {
+      transform: translateY(-2px);
+      animation: none !important;
+      box-shadow: 0 0 0 1.5px rgba(56,189,248,0.4), 0 12px 28px rgba(0,0,0,0.35) !important;
+    }
+    .task-card.solved {
+      border-color: rgba(16,185,129,0.35);
+      background: rgba(16,185,129,0.05);
+      animation: none;
+      box-shadow: 0 0 0 1px rgba(16,185,129,0.2);
+    }
+    .task-card.locked {
+      opacity: 0.4;
+      animation: none;
+      border-style: dashed;
+      border-color: rgba(255,255,255,0.06);
+    }
+    .task-card.active {
+      border-color: rgba(56,189,248,0.25);
+    }
+
+    /* Task numarası başlık */
+    .task-num {
+      font-size: 9px; font-weight: 700; color: #475569;
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 2px;
+      margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .task-num-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 8px; border-radius: 3px; font-size: 9px; font-weight: 700;
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+    }
+    .task-num-badge.pending { background: rgba(56,189,248,0.1); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .task-num-badge.complete { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .task-num-badge.locked  { background: rgba(255,255,255,0.04); color: #475569; border: 1px solid rgba(255,255,255,0.08); }
+
+    .task-title {
+      font-size: 13px; font-weight: 700; color: #a78bfa;
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .task-question { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 14px; line-height: 1.6; }
+
+    .flag-row { display: flex; gap: 8px; }
+    .flag-input {
+      flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 9px 14px; font-size: 12px; color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace; outline: none; transition: border-color 0.2s;
+    }
+    .flag-input:focus { border-color: rgba(167,139,250,0.5); }
+    .submit-btn {
+      padding: 9px 18px; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.4);
+      border-radius: 8px; color: #a78bfa; font-size: 11px; font-weight: 700; cursor: pointer;
+      white-space: nowrap; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .submit-btn:hover { background: rgba(167,139,250,0.25); box-shadow: 0 0 12px rgba(167,139,250,0.3); }
+
+    .hint-link {
+      font-size: 11px; color: #475569; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-bottom: 12px; transition: color 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hint-link:hover { color: #a78bfa; }
+
+    .hint-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .hint-modal.active { display: flex; }
+    .hint-box { background: rgba(13,18,36,0.98); border: 1px solid rgba(167,139,250,0.3); border-radius: 14px; padding: 28px; max-width: 440px; width: 90%; }
+
+    .machine-box { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; padding: 14px; text-align: center; margin-bottom: 10px; }
+    .machine-ip { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #10b981; cursor: pointer; }
+    .pve-timer { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: #38bdf8; text-align: center; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
+<!-- ══ BOOT MODAL ══ -->
+<div class="boot-overlay" id="bootOverlay">
+  <div class="boot-modal">
+    <div class="boot-icon">
+      <span class="material-icons">dns</span>
+    </div>
+    <div class="boot-title">PROXMOX VE</div>
+    <div class="boot-subtitle" id="bootSubtitle">Instance başlatılıyor...</div>
+
+    <div class="boot-progress-bg">
+      <div class="boot-progress-fill" id="bootProgressFill"></div>
+    </div>
+
+    <div class="boot-steps">
+      <div class="boot-step" id="bstep-1">
+        <div class="boot-step-icon">⚙</div>
+        <div class="boot-step-text">VM klonlanıyor</div>
+        <div class="boot-step-status" id="bstatus-1">BEKLEMEDE</div>
+      </div>
+      <div class="boot-step" id="bstep-2">
+        <div class="boot-step-icon">🌐</div>
+        <div class="boot-step-text">Ağ yapılandırılıyor</div>
+        <div class="boot-step-status" id="bstatus-2">BEKLEMEDE</div>
+      </div>
+      <div class="boot-step" id="bstep-3">
+        <div class="boot-step-icon">▶</div>
+        <div class="boot-step-text">Makine başlatılıyor</div>
+        <div class="boot-step-status" id="bstatus-3">BEKLEMEDE</div>
+      </div>
+      <div class="boot-step" id="bstep-4">
+        <div class="boot-step-icon">📡</div>
+        <div class="boot-step-text">IP adresi bekleniyor</div>
+        <div class="boot-step-status" id="bstatus-4">BEKLEMEDE</div>
+      </div>
+    </div>
+
+    <div class="boot-ip-result" id="bootIpResult">
+      <div class="boot-ip-label">HEDEF IP ADRESİ</div>
+      <div class="boot-ip-value" id="bootIpValue" onclick="copyBootIp()">—</div>
+      <div style="font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:4px;">Kopyalamak için tıkla</div>
+    </div>
+
+    <button class="boot-close-btn" id="bootCloseBtn" onclick="closeBootModal()">
+      MAKİNE HAZIR — DEVAM ET
+    </button>
+  </div>
+</div>
+
+<div class="hint-modal" id="hintModal">
+  <div class="hint-box">
+          <div style="font-size:9px;font-weight:700;color:#38bdf8;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">OPERASYON İPUCU</div>
+    <p id="hintTextContent" style="color:#cbd5e1;line-height:1.6;font-size:13px;margin-bottom:20px;"></p>
+    <button onclick="closeHint()" style="background:#38bdf8;border:none;padding:9px 24px;border-radius:6px;color:#0d1117;font-weight:700;cursor:pointer;font-size:12px;">ANLADIM</button>
+  </div>
+</div>
+
+<div class="dash-shell">
+  <%- include('partials/sidebar-only', { currentPage: 'scenarios' }) %>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <div class="dash-status-tag">
+          <a href="/scenarios" style="color:#475569;text-decoration:none;">SENARYOLAR</a>
+          <span style="margin:0 6px;color:#334155;">/</span>
+          <span style="color:#38bdf8;"><%= scenario.title.toUpperCase() %></span>
+        </div>
+      </div>
+      <%- include('partials/topbar-actions') %>
+    </div>
+
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- Sol: Görevler -->
+      <div style="flex:1;overflow-y:auto;padding:20px;min-width:0;" id="scenarioContentArea" class="page-enter">
+
+        <!-- Banner -->
+        <div style="border-radius:12px;overflow:hidden;margin-bottom:20px;position:relative;height:160px;">
+          <img src="<%= scenario.banner || '/defendialogo.png' %>" style="width:100%;height:100%;object-fit:cover;">
+          <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(13,18,36,0.9) 0%,rgba(13,18,36,0.4) 100%);display:flex;align-items:center;padding:24px;">
+            <div>
+      <div style="font-size:9px;font-weight:700;color:#38bdf8;letter-spacing:3px;font-family:'JetBrains Mono',monospace;margin-bottom:6px;">OPERASYON</div>
+              <div style="font-size:22px;font-weight:800;color:white;"><%= scenario.title %></div>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;border:1px solid;color:<%= scenario.difficulty==='Zor'?'#ef4444':(scenario.difficulty==='Orta'?'#fbbf24':'#10b981') %>;border-color:<%= scenario.difficulty==='Zor'?'#ef4444':(scenario.difficulty==='Orta'?'#fbbf24':'#10b981') %>;"><%= scenario.difficulty.toUpperCase() %></span>
+                <span style="font-size:9px;font-weight:700;color:#38bdf8;font-family:'JetBrains Mono',monospace;padding:2px 8px;border:1px solid rgba(56,189,248,0.3);border-radius:3px;"><%= scenario.points %> PTS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Briefing -->
+        <div style="background:#111827;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:18px;margin-bottom:20px;">
+          <div style="font-size:9px;font-weight:700;color:#38bdf8;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:10px;">GÖREV BRİFİNGİ</div>
+          <p style="color:#94a3b8;line-height:1.7;font-size:13px;margin:0;"><%= scenario.description %></p>
+        </div>
+
+        <!-- Görevler -->
+        <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">HEDEF TAKİBİ</div>
+
+        <% scenario.tasks.forEach((task, index) => {
+          const isSolved = user.solved && user.solved.includes(`${scenario.id}_task_${task.id}`);
+          const isLocked = index > currentTaskIndex;
+        %>
+        <div class="task-card <%= isSolved?'solved':(isLocked?'locked':'active') %>" id="task-card-<%= task.id %>">
+          <div class="task-num">
+            <span>GÖREV_<%= String(index+1).padStart(2,'0') %></span>
+            <span class="task-num-badge <%= isSolved?'complete':(isLocked?'locked':'pending') %>">
+              <span class="material-icons" style="font-size:11px;"><%= isSolved?'check_circle':(isLocked?'lock':'pending') %></span>
+              <%= isSolved?'TAMAMLANDI':(isLocked?'KİLİTLİ':'BEKLEMEDE') %>
+            </span>
+          </div>
+          <% if(!isLocked) { %>
+            <div class="task-title"><%= task.title || ('GÖREV ' + (index+1)) %></div>
+            <div class="task-question"><%= task.question %></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:10px;font-weight:700;color:#a78bfa;font-family:'JetBrains Mono',monospace;">+<%= task.points %> PTS</span>
+            </div>
+            <% if(!isSolved) { %>
+              <div class="hint-link" onclick="showHint('<%= task.hint %>')">
+                <span class="material-icons" style="font-size:12px;">lightbulb</span>
+                İpucu Görüntüle
+              </div>
+              <div class="flag-row">
+                <input type="text" id="flag-<%= task.id %>" class="flag-input" placeholder="FLAG{...}">
+                <button class="submit-btn" onclick="submitScenarioTask('<%= scenario.id %>','<%= task.id %>')">
+                  <span class="material-icons" style="font-size:13px;vertical-align:middle;">send</span> GÖNDER
+                </button>
+              </div>
+            <% } else { %>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;">
+                <span class="material-icons" style="font-size:18px;color:#10b981;">check_circle</span>
+                <span style="color:#10b981;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;">GÖREV TAMAMLANDI</span>
+              </div>
+            <% } %>
+          <% } else { %>
+            <div style="display:flex;align-items:center;gap:8px;color:#334155;font-size:12px;font-family:'JetBrains Mono',monospace;">
+              <span class="material-icons" style="font-size:16px;">lock</span>Önceki görevi tamamlayın
+            </div>
+          <% } %>
+        </div>
+        <% }) %>
+      </div>
+
+      <!-- Sağ Sidebar — genişletilmiş -->
+      <div style="width:300px;min-width:300px;border-left:1px solid rgba(255,255,255,0.06);padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Kontrol Paneli -->
+        <div style="background:rgba(17,24,39,0.78);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(6px);">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">KONTROL PANELİ</div>
+
+          <% if(user.active_vmid && user.active_vmid_id == scenario.vmid) { %>
+            <div id="countdown" class="pve-timer">--:--:--</div>
+            <div class="machine-box">
+      <div style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;margin-bottom:4px;">HEDEF IP</div>
+              <div class="machine-ip" id="targetIp" onclick="copyIp()"><%= user.ip_address || 'ÇÖZÜMLENİYOR...' %></div>
+              <div style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;margin-top:4px;">Kopyalamak için tıkla</div>
+            </div>
+            <button onclick="terminateVM()" style="width:100%;padding:9px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;color:#ef4444;font-size:10px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+              <span class="material-icons" style="font-size:12px;vertical-align:middle;">stop_circle</span> DURDUR
+            </button>
+          <% } else { %>
+            <button onclick="startScenarioVM('<%= scenario.vmid %>')" style="width:100%;padding:11px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;color:#10b981;font-size:11px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'">
+              <span class="material-icons" style="font-size:13px;vertical-align:middle;">play_circle</span> MAKİNEYİ BAŞLAT
+            </button>
+          <% } %>
+        </div>
+
+        <!-- Görev İlerlemesi -->
+        <div style="background:rgba(17,24,39,0.78);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(6px);">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:10px;">GÖREV İLERLEMESİ</div>
+          <div style="font-size:32px;font-weight:900;color:#a78bfa;font-family:'JetBrains Mono',monospace;line-height:1;text-shadow:0 0 12px rgba(167,139,250,0.4);"><%= scenario.tasks.length===0?0:Math.round((currentTaskIndex/scenario.tasks.length)*100) %>%</div>
+          <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;margin:10px 0;">
+            <div style="height:100%;background:linear-gradient(90deg,#a78bfa,#38bdf8);border-radius:4px;width:<%= scenario.tasks.length===0?0:Math.round((currentTaskIndex/scenario.tasks.length)*100) %>%;box-shadow:0 0 8px rgba(167,139,250,0.4);transition:width 1s ease;"></div>
+          </div>
+          <div style="font-size:9px;color:#475569;font-family:'JetBrains Mono',monospace;"><%= currentTaskIndex %>/<%= scenario.tasks.length %> görev tamamlandı</div>
+        </div>
+
+        <!-- Görev Listesi -->
+        <div style="background:rgba(17,24,39,0.78);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(6px);">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">GÖREV LİSTESİ</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <% scenario.tasks.forEach((task, index) => {
+              const isSolved = user.solved && user.solved.includes(`${scenario.id}_task_${task.id}`);
+              const isLocked = index > currentTaskIndex;
+            %>
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,0.02);border:1px solid <%= isSolved?'rgba(16,185,129,0.2)':(isLocked?'rgba(255,255,255,0.04)':'rgba(167,139,250,0.2)') %>;">
+              <span class="material-icons" style="font-size:13px;color:<%= isSolved?'#10b981':(isLocked?'#334155':'#a78bfa') %>;flex-shrink:0;">
+                <%= isSolved?'check_circle':(isLocked?'lock':'radio_button_unchecked') %>
+              </span>
+              <span style="font-size:11px;color:<%= isSolved?'#10b981':(isLocked?'#334155':'#cbd5e1') %>;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                <%= task.title || ('Görev ' + (index+1)) %>
+              </span>
+              <span style="font-size:9px;color:<%= isSolved?'#10b981':'#475569' %>;font-family:'JetBrains Mono',monospace;flex-shrink:0;">+<%= task.points %></span>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- Senaryo Bilgisi -->
+        <div style="background:rgba(17,24,39,0.78);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(6px);">
+          <div style="font-size:9px;font-weight:700;color:#475569;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">SENARYO BİLGİSİ</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11px;color:#64748b;">Zorluk</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;font-family:'JetBrains Mono',monospace;border:1px solid;color:<%= scenario.difficulty==='Zor'?'#ef4444':(scenario.difficulty==='Orta'?'#fbbf24':'#10b981') %>;border-color:<%= scenario.difficulty==='Zor'?'#ef4444':(scenario.difficulty==='Orta'?'#fbbf24':'#10b981') %>;"><%= scenario.difficulty.toUpperCase() %></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11px;color:#64748b;">Toplam Puan</span>
+              <span style="font-size:12px;font-weight:700;color:#a78bfa;font-family:'JetBrains Mono',monospace;"><%= scenario.points %> PTS</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11px;color:#64748b;">Görev Sayısı</span>
+              <span style="font-size:12px;font-weight:700;color:#38bdf8;font-family:'JetBrains Mono',monospace;"><%= scenario.tasks.length %></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const expiryTime = "<%= user.expiry %>";
+function showHint(hint) { document.getElementById('hintTextContent').innerText = hint; document.getElementById('hintModal').classList.add('active'); }
+function closeHint() { document.getElementById('hintModal').classList.remove('active'); }
+function copyIp() { const ip = document.getElementById('targetIp').innerText; if(ip.includes('ÇÖZÜMLENİYOR')) return; navigator.clipboard.writeText(ip).then(() => showToast('IP Kopyalandı: '+ip,'success')); }
+
+/* ══ BOOT MODAL ══ */
+let bootIpInterval = null;
+
+function setBootStep(step, state) {
+  const el = document.getElementById('bstep-'+step);
+  const st = document.getElementById('bstatus-'+step);
+  if(!el) return;
+  el.classList.remove('active','done');
+  el.classList.add(state);
+  st.textContent = state === 'done' ? 'TAMAM' : 'ÇALIŞIYOR';
+}
+
+function setBootProgress(pct, subtitle) {
+  document.getElementById('bootProgressFill').style.width = pct + '%';
+  if(subtitle) document.getElementById('bootSubtitle').textContent = subtitle;
+}
+
+function copyBootIp() {
+  const ip = document.getElementById('bootIpValue').textContent;
+  if(ip === '—') return;
+  navigator.clipboard.writeText(ip).then(() => showToast('IP Kopyalandı: '+ip, 'success'));
+}
+
+function closeBootModal() {
+  document.getElementById('bootOverlay').classList.remove('active');
+  if(bootIpInterval) clearInterval(bootIpInterval);
+  location.reload();
+}
+
+async function startScenarioVM(vmid) {
+  const overlay = document.getElementById('bootOverlay');
+  overlay.classList.add('active');
+  setBootProgress(5, 'VM klonlanıyor...');
+  setBootStep(1, 'active');
+
+  try {
+    const res = await fetch('/api/start-lab', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({vmid})
+    });
+    const data = await res.json();
+
+    if(!data.success) {
+      document.getElementById('bootSubtitle').textContent = 'Hata: ' + (data.message || 'Bilinmeyen hata');
+      document.getElementById('bootProgressFill').style.background = '#ef4444';
+      return;
+    }
+
+    setBootStep(1, 'done');
+    setBootProgress(30, 'Ağ yapılandırılıyor...');
+    setBootStep(2, 'active');
+
+    await new Promise(r => setTimeout(r, 1500));
+    setBootStep(2, 'done');
+    setBootProgress(55, 'Makine başlatılıyor...');
+    setBootStep(3, 'active');
+
+    await new Promise(r => setTimeout(r, 2000));
+    setBootStep(3, 'done');
+    setBootProgress(75, 'IP adresi bekleniyor...');
+    setBootStep(4, 'active');
+
+    // IP polling
+    bootIpInterval = setInterval(async () => {
+      try {
+        const ipData = await (await fetch('/api/get-ip/0')).json();
+        if(ipData.expired) {
+          clearInterval(bootIpInterval);
+          document.getElementById('bootSubtitle').textContent = 'Süre doldu, yenileniyor...';
+          setTimeout(() => location.reload(), 1500);
+          return;
+        }
+        if(ipData.ip) {
+          clearInterval(bootIpInterval);
+          setBootStep(4, 'done');
+          setBootProgress(100, 'Makine hazır!');
+
+          // IP göster
+          document.getElementById('bootIpValue').textContent = ipData.ip;
+          document.getElementById('bootIpResult').classList.add('show');
+          document.getElementById('bootCloseBtn').classList.add('show');
+
+          // Sayfadaki IP alanını güncelle
+          const targetIp = document.getElementById('targetIp');
+          if(targetIp) targetIp.textContent = ipData.ip;
+        }
+      } catch(e) {}
+    }, 4000);
+
+  } catch(e) {
+    document.getElementById('bootSubtitle').textContent = 'Bağlantı hatası!';
+  }
+}
+async function submitScenarioTask(scenarioId, taskId) {
+  const flag = document.getElementById('flag-'+taskId).value;
+  const res = await fetch('/api/submit-scenario-task',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenarioId,taskId,flag})});
+  const data = await res.json();
+  if(data.success) { showToast(data.message,'success'); localStorage.setItem('scenario_scroll_pos', document.getElementById('scenarioContentArea').scrollTop); setTimeout(() => location.reload(), 1200); }
+  else showToast(data.message,'error');
+}
+async function terminateVM() { if(confirm('Makineyi durdurmak istediğinize emin misiniz?')) { await fetch('/api/stop-lab',{method:'POST'}); location.reload(); } }
+function showToast(m, t) {
+  const c = document.getElementById('toast-container');
+  const d = document.createElement('div');
+  const bc = t==='success'?'#10b981':'#ef4444';
+  d.style.cssText = `background:#111827;border-left:3px solid ${bc};padding:12px 18px;color:white;border-radius:8px;font-size:12px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,0.4);animation:slideInRight 0.3s ease;`;
+  d.textContent = m; c.appendChild(d);
+  setTimeout(() => { d.style.opacity='0'; d.style.transform='translateX(20px)'; d.style.transition='0.3s'; setTimeout(() => d.remove(), 300); }, 3000);
+}
+function startTimer() {
+  const el = document.getElementById('countdown');
+  if(!el||!expiryTime||expiryTime==='null'||expiryTime==='') return;
+  setInterval(() => {
+    const diff = new Date(expiryTime) - new Date();
+    if(diff<=0){el.textContent='SÜRE DOLDU';location.reload();return;}
+    const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }, 1000);
+}
+function startIpPolling() {
+  const el = document.getElementById('targetIp');
+  if(!el||el.textContent!=='ÇÖZÜMLENİYOR...') { startTimer(); return; }
+  const iv = setInterval(async () => {
+    const data = await (await fetch('/api/get-ip/0')).json();
+    if(data.ip) { el.textContent=data.ip; clearInterval(iv); showToast('IP Tanımlandı: '+data.ip,'success'); startTimer(); }
+  }, 5000);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const pos = localStorage.getItem('scenario_scroll_pos');
+  if(pos) { document.getElementById('scenarioContentArea').scrollTop = pos; localStorage.removeItem('scenario_scroll_pos'); }
+  startTimer(); startIpPolling();
+  const bell=document.getElementById('notifBellBtn'),drop=document.getElementById('notifDropdown');
+  if(bell&&drop){loadNotificationData();bell.addEventListener('click',e=>{e.stopPropagation();const o=drop.classList.toggle('active');if(o)markAllAsRead();});document.addEventListener('click',e=>{if(!bell.contains(e.target)&&!drop.contains(e.target))drop.classList.remove('active');});document.getElementById('notifClearBtn').addEventListener('click',clearAllNotifications);}
+  let es=null,r=0;function conn(){if(es)es.close();es=new EventSource('/api/notifications/stream');es.onmessage=e=>{try{processNotification(JSON.parse(e.data));}catch(err){}};es.onerror=()=>{es.close();if(r++<3)setTimeout(conn,5000);};es.addEventListener('ping',()=>{r=0;});}conn();
+});
+
+/* ── Bildirim Yardımcı Fonksiyonları ── */
+function loadNotificationData() {
+  var c = parseInt(localStorage.getItem('notif_unread_count')||'0');
+  var h = JSON.parse(localStorage.getItem('notif_history')||'[]');
+  var b = document.getElementById('notifBadge');
+  if(b){b.textContent=c;b.classList.toggle('hidden',c===0);}
+  var l = document.getElementById('notifList');
+  if(!l) return;
+  if(!h.length){l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';return;}
+  var cols={info:'#38bdf8',success:'#10b981',warning:'#fbbf24',danger:'#ef4444'};
+  l.innerHTML=h.slice(-10).reverse().map(function(n){return '<div class="notif-item" style="border-left-color:'+(cols[n.severity]||cols.info)+'"><div class="notif-item-message">'+n.message+'</div></div>';}).join('');
+}
+function markAllAsRead(){localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}}
+function clearAllNotifications(){localStorage.setItem('notif_history','[]');localStorage.setItem('notif_unread_count','0');var b=document.getElementById('notifBadge');if(b){b.textContent='0';b.classList.add('hidden');}var l=document.getElementById('notifList');if(l)l.innerHTML='<div class="notif-empty">Henüz bildirim yok</div>';var d=document.getElementById('notifDropdown');if(d)d.classList.remove('active');}
+function handleNotification(notif){if(notif.sound!==false&&typeof _playSound==='function')_playSound('notif');if(typeof showCriticalModal==='function')showCriticalModal(notif);var h=JSON.parse(localStorage.getItem('notif_history')||'[]');h.push(notif);var l=h.slice(-10);localStorage.setItem('notif_history',JSON.stringify(l));var b=document.getElementById('notifBadge');var n=parseInt(localStorage.getItem('notif_unread_count')||'0')+1;localStorage.setItem('notif_unread_count',n.toString());if(b){b.textContent=n;b.classList.remove('hidden');}}
+</script>
+</body>
+</html>

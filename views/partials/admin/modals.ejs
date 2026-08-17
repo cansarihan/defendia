@@ -1,0 +1,100 @@
+<div class="modal-overlay" id="confirmModal" style="z-index: 10000;">
+    <div class="modal-content" style="width: 400px; text-align: center; align-items: center;">
+        <h3 id="confirmTitle" style="color: var(--red);">Sistem Uyarısı</h3>
+        <p id="confirmMessage" style="color: #94a3b8; font-size: 14px;">Bu işlemi yapmak istediğinize emin misiniz?</p>
+        <div style="display: flex; gap: 15px; width: 100%;">
+            <button class="btn-save" style="background: rgba(255,255,255,0.1); color: white; flex: 1;" onclick="closeModal('confirmModal')">İptal Et</button>
+            <button class="btn-save" style="background: var(--red); flex: 1;" id="confirmActionBtn">Onaylıyorum</button>
+        </div>
+    </div>
+</div>
+
+<!-- Şifre Değiştir Modal -->
+<div class="modal-overlay" id="changePasswordModal">
+    <div class="modal-content" style="width:420px;">
+        <span class="close-modal" onclick="closeModal('changePasswordModal')">&times;</span>
+        <h3>Şifre Değiştir</h3>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Operatör: <span id="cpUsername" style="color:#a78bfa;font-weight:700;"></span></div>
+        <input type="hidden" id="cpUserId">
+        <div>
+            <label class="admin-label">Yeni Şifre</label>
+            <input type="password" id="cpNewPassword" class="modal-content input" placeholder="Yeni şifre (min. 4 karakter)"
+                style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:white;padding:10px 14px;border-radius:8px;outline:none;font-size:13px;width:100%;box-sizing:border-box;">
+        </div>
+        <div>
+            <label class="admin-label" style="margin-top:10px;display:block;">Şifre Tekrar</label>
+            <input type="password" id="cpConfirmPassword" placeholder="Şifreyi tekrar girin"
+                style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);color:white;padding:10px 14px;border-radius:8px;outline:none;font-size:13px;width:100%;box-sizing:border-box;">
+        </div>
+        <div id="cpMsg" style="display:none;padding:8px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;margin-top:4px;"></div>
+        <button onclick="submitChangePassword()" class="btn-save" style="margin-top:4px;">
+            <span class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">lock_reset</span> Şifreyi Güncelle
+        </button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="labModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('labModal')">&times;</span>
+        <h3 id="labModalTitle">Yeni Laboratuvar Ekle</h3>
+        <input type="text" id="labId" placeholder="VMID"><input type="text" id="labTitle" placeholder="Makine Adı">
+        <select id="labDiff"><option value="Kolay">Kolay</option><option value="Orta">Orta</option><option value="Zor">Zor</option></select>
+        <input type="number" id="labPoints" placeholder="Puan"><input type="text" id="labFlag" placeholder="Flag">
+        <textarea id="labHint" placeholder="İpucu..." style="width:100%;box-sizing:border-box;min-height:100px;height:100px;resize:vertical;"></textarea><button onclick="saveLab()" class="btn-save">Kaydet</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="ctfModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('ctfModal')">&times;</span>
+        <h3 id="ctfModalTitle">Yeni CTF Görevi Ekle</h3>
+        <input type="text" id="ctfId" placeholder="ID"><input type="text" id="ctfTitle" placeholder="Başlık">
+        <input type="text" id="ctfCat" placeholder="Kategori"><input type="number" id="ctfPoints" placeholder="Puan">
+        <input type="text" id="ctfFlag" placeholder="Flag"><input type="text" id="ctfDownload" placeholder="Dosya Yolu">
+        <input type="file" id="ctfFileInputAdmin" style="display:none;" onchange="uploadCtfFileAdmin()">
+        <button type="button" class="btn-add-new" onclick="document.getElementById('ctfFileInputAdmin').click()" style="width:100%; justify-content:center; gap:8px;">+ DOSYA YÜKLE</button>
+        <textarea id="ctfHint" placeholder="İpucu..." style="width:100%;box-sizing:border-box;min-height:120px;height:120px;resize:vertical;"></textarea><button onclick="saveCtf()" class="btn-save">Kaydet</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="scenarioModal">
+    <div class="modal-content" style="width: 750px;">
+        <span class="close-modal" onclick="closeModal('scenarioModal')">&times;</span>
+        <h3 id="sceModalTitle" style="color:white; margin:0 0 10px 0; border-bottom:1px solid var(--border); padding-bottom:10px;">Senaryo Yönetimi</h3>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:15px;">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:11px; color:var(--blue); font-weight:bold;">ID VE BAŞLIK</span>
+                <input type="text" id="sceId" placeholder="Benzersiz ID">
+                <input type="text" id="sceTitle" placeholder="Operasyon Başlığı">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:11px; color:var(--blue); font-weight:bold;">VMID</span>
+                <input type="number" id="sceVmid" placeholder="Proxmox VMID">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:11px; color:var(--blue); font-weight:bold;">ZORLUK VE PUAN</span>
+                <select id="sceDiff"><option>Kolay</option><option>Orta</option><option>Zor</option></select>
+                <input type="number" id="scePoints" placeholder="Toplam Puan">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:11px; color:var(--green); font-weight:bold;">KAPAK FOTOĞRAFI</span>
+                <div class="upload-area">
+                    <input type="text" id="sceBanner" placeholder="Dosya yolu..." readonly>
+                    <input type="file" id="sceFileInput" style="display:none;" accept=".png, .jpg, .jpeg" onchange="uploadScenarioBannerAdmin()">
+                    <button type="button" class="btn-upload" onclick="document.getElementById('sceFileInput').click()">YÜKLE</button>
+                </div>
+            </div>
+        </div>
+
+        <textarea id="sceDesc" placeholder="Senaryo detayları..." style="width:100%;box-sizing:border-box;min-height:160px;height:160px;resize:vertical;margin-bottom:15px;"></textarea>
+
+        <div style="font-size:11px; color:var(--green); font-weight:800; border-top:1px dashed var(--border); padding-top:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            AŞAMALAR VE SORULAR
+            <button type="button" class="btn-add-new" onclick="addTaskEntry()" style="margin:0; padding:5px 12px; font-size:11px;">+ AŞAMA EKLE</button>
+        </div>
+        
+        <div id="sceTasksContainer"></div>
+        <button onclick="saveScenario()" class="btn-save">TÜM DEĞİŞİKLİKLERİ SİSTEME İŞLE</button>
+    </div>
+</div>

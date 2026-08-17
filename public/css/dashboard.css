@@ -1,0 +1,1194 @@
+/* ============================================
+   DASHBOARD.CSS — Luminary OS Dashboard
+   ============================================ */
+
+/* ── Üst Bar ── */
+.dash-topbar {
+  height: 48px;
+  background: rgba(13,17,23,0.8);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.dash-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.dash-status-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #475569;
+  letter-spacing: 1px;
+}
+
+.dash-status-tag span {
+  color: #10b981;
+}
+
+.dash-topbar-search {
+  position: relative;
+}
+
+.dash-topbar-search input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 6px 12px 6px 30px;
+  font-size: 11px;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  width: 100%;
+  transition: all 0.2s;
+}
+
+.dash-topbar-search input:focus {
+  border-color: rgba(56,189,248,0.3);
+  color: #cbd5e1;
+}
+
+.dash-topbar-search .material-icons {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #475569;
+}
+
+.dash-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.dash-icon-btn .material-icons { font-size: 16px; }
+.dash-icon-btn:hover { color: #cbd5e1; border-color: rgba(255,255,255,0.15); }
+
+/* ── Ana Layout ── */
+.dash-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: rgba(13,17,23,0.8);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Sol Sidebar ── */
+.dash-sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: rgba(13,17,23,0.82);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 10;
+}
+
+.dash-sidebar-user {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.dash-sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
+
+.dash-sidebar-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  background: rgba(16,185,129,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #10b981;
+  margin-bottom: 8px;
+}
+
+.dash-sidebar-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.dash-sidebar-rank {
+  font-size: 9px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.dash-nav {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+.dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-left: 2px solid transparent;
+}
+
+.dash-nav-item .material-icons { font-size: 16px; }
+
+.dash-nav-item .pm-nav-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: #03131f;
+  font-size: 9px;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  box-shadow: 0 0 12px rgba(16,185,129,0.45);
+}
+
+.dash-nav-item .pm-nav-badge.hidden { display: none; }
+
+.dash-nav-item:hover {
+  color: #94a3b8;
+  background: rgba(255,255,255,0.03);
+}
+
+.dash-nav-item.active {
+  color: #10b981;
+  background: rgba(16,185,129,0.08);
+  border-left-color: #10b981;
+}
+
+.dash-nav-item.danger { color: #ef4444; }
+.dash-nav-item.danger:hover { background: rgba(239,68,68,0.06); border-left-color: #ef4444; }
+
+.dash-nav-item.admin-item { color: #fbbf24; }
+.dash-nav-item.admin-item:hover { background: rgba(251,191,36,0.06); border-left-color: #fbbf24; }
+.dash-nav-item.admin-item.active { color: #fbbf24; background: rgba(251,191,36,0.08); border-left-color: #fbbf24; }
+
+.dash-sidebar-bottom {
+  padding: 12px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-sidebar-scan-btn {
+  margin: 8px 16px;
+  padding: 10px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 6px;
+  color: #10b981;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.dash-sidebar-scan-btn:hover {
+  background: rgba(16,185,129,0.2);
+  box-shadow: 0 0 12px rgba(16,185,129,0.2);
+}
+
+/* ── Ana İçerik ── */
+.dash-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.dash-content-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Orta Panel ── */
+.dash-center {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  min-width: 0;
+}
+
+/* ── Başlık Alanı ── */
+.dash-header-section {
+  margin-bottom: 20px;
+}
+
+.dash-operational-label {
+  font-size: 10px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.dash-operational-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 1px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Hero Kart (Aktif Lab / Mevcut Görev) ── */
+.dash-hero-card {
+  background: linear-gradient(135deg, #111827 0%, #0d1f2d 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  align-items: stretch;
+}
+
+.dash-hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(56,189,248,0.03) 100%);
+}
+
+.dash-hero-content {
+  position: relative;
+  z-index: 1;
+  padding: 28px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dash-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dash-hero-tag-badge {
+  background: #10b981;
+  color: #0d1117;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+}
+
+.dash-hero-tag-id {
+  font-size: 10px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dash-hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.dash-hero-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  max-width: 480px;
+}
+
+.dash-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dash-hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid #38bdf8;
+  border-radius: 6px;
+  color: #38bdf8;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.dash-hero-btn:hover {
+  background: rgba(56,189,248,0.1);
+  box-shadow: 0 0 15px rgba(56,189,248,0.2);
+}
+
+.dash-hero-ip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dash-hero-ip::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+/* ── Dashboard veri kartları ── */
+.dash-data-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dash-data-card {
+  min-height: 72px;
+  background: rgba(17,24,39,0.68);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(6px);
+}
+
+.dash-data-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(56,189,248,0.08);
+  border: 1px solid rgba(56,189,248,0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash-data-icon .material-icons {
+  font-size: 17px;
+  color: #38bdf8;
+}
+
+.dash-data-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #f8fafc;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+
+.dash-data-label {
+  margin-top: 6px;
+  font-size: 8px;
+  font-weight: 800;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1.4px;
+  white-space: nowrap;
+}
+
+/* ── Alt İki Kart ── */
+.dash-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dash-card {
+  background: rgba(17,24,39,0.75);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(6px);
+}
+
+.dash-card-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Mastery */
+.dash-mastery-pct {
+  font-size: 36px;
+  font-weight: 800;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.dash-mastery-label {
+  font-size: 10px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.dash-mastery-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.dash-mastery-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #38bdf8);
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.dash-mastery-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Log Feed */
+.dash-log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 12px;
+}
+
+.dash-log-item:last-child { border-bottom: none; }
+
+.dash-log-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.dash-log-text { color: #94a3b8; line-height: 1.4; }
+
+/* ── Sağ Panel ── */
+.dash-right {
+  width: 300px;
+  min-width: 300px;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dash-right-card {
+  background: rgba(17,24,39,0.75);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 16px;
+  backdrop-filter: blur(6px);
+}
+
+.dash-right-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dash-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 0;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.dash-mini-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.dash-mini-row:hover .dash-mini-title { color: #cbd5e1; }
+
+.dash-mini-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56,189,248,0.45);
+  flex-shrink: 0;
+}
+
+.dash-mini-dot.solved {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.45);
+}
+
+.dash-mini-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dash-mini-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.dash-mini-sub {
+  font-size: 9px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-mini-points {
+  font-size: 10px;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
+}
+
+.dash-empty-mini {
+  padding: 12px 0 4px;
+  text-align: center;
+  font-size: 11px;
+  color: #334155;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dash-diff-row { margin-bottom: 12px; }
+.dash-diff-row:last-of-type { margin-bottom: 0; }
+
+.dash-diff-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dash-diff-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dash-diff-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #38bdf8);
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.dash-data-foot {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 9px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: right;
+}
+
+/* Skill Radar (hexagon benzeri görsel) */
+.dash-skill-hex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dash-skill-hex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+/* Dönen dış halka */
+.dash-skill-hex::before {
+  content: '';
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: rgba(56,189,248,0.6);
+  border-right-color: rgba(56,189,248,0.2);
+  animation: hexRingSpin 4s linear infinite;
+  pointer-events: none;
+}
+
+.dash-skill-hex::after {
+  content: '';
+  position: absolute;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-bottom-color: rgba(167,139,250,0.5);
+  border-left-color: rgba(167,139,250,0.15);
+  animation: hexRingSpin 6s linear infinite reverse;
+  pointer-events: none;
+}
+
+@keyframes hexRingSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.dash-skill-hex-inner {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, rgba(56,189,248,0.12) 0%, rgba(167,139,250,0.08) 100%);
+  border: 2px solid rgba(56,189,248,0.35);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 30px rgba(56,189,248,0.15), inset 0 0 20px rgba(56,189,248,0.05);
+  animation: hexPulse 3s ease-in-out infinite;
+}
+
+@keyframes hexPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(56,189,248,0.15), inset 0 0 15px rgba(56,189,248,0.05); }
+  50%       { box-shadow: 0 0 40px rgba(56,189,248,0.3),  inset 0 0 25px rgba(56,189,248,0.1); }
+}
+
+.dash-skill-hex-level {
+  font-size: 26px;
+  font-weight: 900;
+  color: #38bdf8;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(56,189,248,0.6);
+}
+
+.dash-skill-hex-label {
+  font-size: 8px;
+  color: rgba(56,189,248,0.6);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.dash-skill-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dash-skill-dot-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dash-skill-dot-item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+
+.dash-skill-dot-item.inactive::before { background: #ef4444; }
+
+/* Node Infrastructure */
+.dash-node-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+}
+
+.dash-node-item:last-child { margin-bottom: 0; }
+
+.dash-node-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash-node-icon .material-icons { font-size: 16px; color: #38bdf8; }
+
+.dash-node-info { flex: 1; min-width: 0; }
+
+.dash-node-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dash-node-sub {
+  font-size: 9px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 1px;
+}
+
+.dash-node-status {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+}
+
+.dash-node-status.online  { color: #10b981; }
+.dash-node-status.syncing { color: #38bdf8; }
+.dash-node-status.warning { color: #fbbf24; }
+
+/* Uptime/Network stats */
+.dash-topbar-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.dash-topbar-stat {
+  text-align: right;
+}
+
+.dash-topbar-stat-label {
+  font-size: 8px;
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.dash-topbar-stat-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ══════════════════════════════════════════
+   BOOT MODAL — Proxmox VM Başlatma Ekranı
+══════════════════════════════════════════ */
+.boot-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 24, 0.94);
+  z-index: 99998;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(16px);
+  animation: pageEnter 0.3s ease;
+}
+.boot-overlay.active { display: flex; }
+
+.boot-modal {
+  width: 480px;
+  max-width: 92vw;
+  background: rgba(13,18,36,0.8);
+  border: 1px solid rgba(56,189,248,0.2);
+  border-radius: 16px;
+  padding: 40px 36px;
+  position: relative;
+  animation: fadeInUp 0.35s ease;
+}
+
+/* Köşe çizgileri */
+.boot-modal::before,
+.boot-modal::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+}
+.boot-modal::before {
+  top: 12px; left: 12px;
+  border-top: 2px solid rgba(56,189,248,0.4);
+  border-left: 2px solid rgba(56,189,248,0.4);
+  border-radius: 2px 0 0 0;
+}
+.boot-modal::after {
+  bottom: 12px; right: 12px;
+  border-bottom: 2px solid rgba(56,189,248,0.4);
+  border-right: 2px solid rgba(56,189,248,0.4);
+  border-radius: 0 0 2px 0;
+}
+
+.boot-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(56,189,248,0.08);
+  border: 1px solid rgba(56,189,248,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+.boot-icon .material-icons { font-size: 28px; color: #38bdf8; }
+
+.boot-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.boot-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  margin-bottom: 28px;
+  font-weight: 600;
+}
+
+/* Progress bar */
+.boot-progress-bg {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.boot-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #38bdf8);
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%;
+}
+
+/* Adım listesi */
+.boot-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+
+.boot-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: all 0.3s;
+}
+.boot-step.active {
+  background: rgba(56,189,248,0.06);
+  border-color: rgba(56,189,248,0.2);
+}
+.boot-step.done {
+  background: rgba(16,185,129,0.05);
+  border-color: rgba(16,185,129,0.2);
+}
+
+.boot-step-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.3s;
+}
+.boot-step.active .boot-step-icon {
+  background: rgba(56,189,248,0.1);
+  border-color: rgba(56,189,248,0.3);
+  animation: spin 1.2s linear infinite;
+}
+.boot-step.done .boot-step-icon {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.3);
+  animation: none;
+}
+
+.boot-step-text {
+  flex: 1;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #475569;
+  transition: color 0.3s;
+}
+.boot-step.active .boot-step-text { color: #38bdf8; }
+.boot-step.done .boot-step-text { color: #10b981; }
+
+.boot-step-status {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+  color: #334155;
+  transition: color 0.3s;
+}
+.boot-step.active .boot-step-status { color: #38bdf8; }
+.boot-step.done .boot-step-status { color: #10b981; }
+
+/* IP Sonuç Kutusu */
+.boot-ip-result {
+  display: none;
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  animation: fadeInUp 0.4s ease;
+}
+.boot-ip-result.show { display: block; }
+.boot-ip-label { font-size: 9px; color: #475569; font-family: 'JetBrains Mono', monospace; letter-spacing: 2px; margin-bottom: 6px; }
+.boot-ip-value { font-size: 22px; font-weight: 800; color: #10b981; font-family: 'JetBrains Mono', monospace; cursor: pointer; }
+.boot-ip-value:hover { text-shadow: 0 0 12px rgba(16,185,129,0.5); }
+
+.boot-close-btn {
+  display: none;
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px;
+  background: #10b981;
+  border: none;
+  border-radius: 8px;
+  color: #080c18;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.boot-close-btn.show { display: block; }
+.boot-close-btn:hover { box-shadow: 0 0 16px rgba(16,185,129,0.4); }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ══════════════════════════════════════════
+   KART ANİMASYONLARI — NEON GLOW BORDER
+══════════════════════════════════════════ */
+
+/* Navigasyon kartları — dönen neon glow (box-shadow ile, taşma yok) */
+.dash-nav-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+  animation: navCardGlow 3s linear infinite;
+}
+
+.dash-nav-card:nth-child(2) { animation-delay: -1s; }
+.dash-nav-card:nth-child(3) { animation-delay: -2s; }
+
+@keyframes navCardGlow {
+  0%   { box-shadow: 0 0 0 1px #38bdf8, 0 0 12px rgba(56,189,248,0.3); }
+  16%  { box-shadow: 0 0 0 1px #10b981, 0 0 12px rgba(16,185,129,0.3); }
+  33%  { box-shadow: 0 0 0 1px #a78bfa, 0 0 12px rgba(167,139,250,0.3); }
+  50%  { box-shadow: 0 0 0 1px #ef4444, 0 0 12px rgba(239,68,68,0.3); }
+  66%  { box-shadow: 0 0 0 1px #fbbf24, 0 0 12px rgba(251,191,36,0.3); }
+  83%  { box-shadow: 0 0 0 1px #38bdf8, 0 0 12px rgba(56,189,248,0.3); }
+  100% { box-shadow: 0 0 0 1px #38bdf8, 0 0 12px rgba(56,189,248,0.3); }
+}
+
+.dash-nav-card:hover {
+  transform: translateY(-5px) !important;
+  animation: none !important;
+  box-shadow: 0 0 0 1.5px #38bdf8, 0 0 24px rgba(56,189,248,0.5), 0 16px 40px rgba(0,0,0,0.4) !important;
+}
+
+/* Alt kartlar — daha yavaş, daha soluk */
+.dash-anim-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+  animation: altCardGlow 5s linear infinite;
+}
+
+.dash-anim-card:nth-child(2) { animation-delay: -2.5s; }
+
+@keyframes altCardGlow {
+  0%   { box-shadow: 0 0 0 1px rgba(56,189,248,0.4),  0 0 8px rgba(56,189,248,0.15); }
+  50%  { box-shadow: 0 0 0 1px rgba(167,139,250,0.4), 0 0 8px rgba(167,139,250,0.15); }
+  100% { box-shadow: 0 0 0 1px rgba(56,189,248,0.4),  0 0 8px rgba(56,189,248,0.15); }
+}
+
+.dash-anim-card:hover {
+  transform: translateY(-3px) !important;
+  animation: none !important;
+  box-shadow: 0 0 0 1px rgba(56,189,248,0.6), 0 0 16px rgba(56,189,248,0.25), 0 12px 32px rgba(0,0,0,0.35) !important;
+}
+
+@media (max-width: 1180px) {
+  .dash-content-area {
+    overflow-y: auto;
+    flex-direction: column;
+  }
+
+  .dash-center {
+    overflow: visible;
+  }
+
+  .dash-right {
+    width: auto;
+    min-width: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dash-data-grid,
+  .dash-bottom-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .dash-data-grid,
+  .dash-bottom-grid,
+  .dash-right {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-data-label {
+    white-space: normal;
+  }
+}

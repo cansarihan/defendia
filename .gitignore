@@ -1,0 +1,29 @@
+node_modules/
+*.zip
+.DS_Store
+cloudflared.deb
+.env
+
+# ── Hassas / kişisel veriler (repoya dahil edilmez) ──
+# Gerçek kullanıcılar ve parola hash'leri
+users.json
+# Özel mesajlar, destek talepleri, banlar, takımlar, ilk kan, rozetler, adminler
+data/private-messages.json
+data/tickets.json
+data/bans.json
+data/teams.json
+data/firstblood.json
+data/badges.json
+data/admins.json
+# Canlı flag içeren içerik dosyaları (yerine *.example.json kullanılır)
+data/ctf.json
+data/labs.json
+data/scenarios.json
+data/system.json
+
+# Kullanıcı yüklemeleri (avatarlar, senaryo bannerları)
+public/uploads/
+
+# Editör / IDE
+.vscode/
+.kiro/
