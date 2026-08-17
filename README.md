@@ -1,8 +1,7 @@
 <div align="center">
 
-<img src="public/defendialogo.png" alt="DEFENDIA" width="130" />
+<img src="https://defendia.bluenetwork.dev/defendialogo.png" alt="DEFENDIA" width="200" />
 
-<h1>DEFENDIA</h1>
 <h3>Network Defense — Siber Güvenlik Eğitim &amp; CTF Operasyon Platformu</h3>
 
 <a href="https://git.io/typing-svg">
