@@ -96,9 +96,6 @@ Platformu kurulum yapmadan incelemek için hazır bir demo ortamı mevcuttur:
 ### Takım Yönetimi
 ![Takım Yönetimi](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/13-teams.png)
 
-### Admin Panel
-![Admin Panel](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/08-admin.png)
-
 ### Profil
 ![Profil](https://cdn.jsdelivr.net/gh/cansarihan/defendia@main/docs/screenshots/11-profile.png)
 
